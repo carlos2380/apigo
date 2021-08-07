@@ -3,7 +3,7 @@ package handlers
 import (
 	"apigo/api"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,7 +29,10 @@ func GetStore(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Item not found"))
+	json.NewEncoder(w).Encode(
+		struct {
+			Error string `json:"error"`
+		}{Error: "Item Not Found"})
 }
 
 func DeleteStore(w http.ResponseWriter, r *http.Request) {
@@ -40,28 +43,36 @@ func DeleteStore(w http.ResponseWriter, r *http.Request) {
 		if store.ID == id {
 			stores = append(stores[:i], stores[i+1:]...)
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(stores)
+			//json.NewEncoder(w).Encode(stores)
 			return
 		}
 	}
 	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Item not found"))
+	json.NewEncoder(w).Encode(
+		struct {
+			Error string `json:"error"`
+		}{Error: "Item Not Found"})
 }
 
 func PostStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var store api.Store
-	err := json.NewDecoder(r.Body).Decode(&store)
-	if err != nil {
-		fmt.Println("error")
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	err := dec.Decode(&store)
+	if err != nil || store.ValidReq() != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("error"))
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Bad Request"})
 		return
 	}
-
 	stores = append(stores, store)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(stores)
+	//json.NewEncoder(w).Encode("")
+
 }
 
 func PutStore(w http.ResponseWriter, r *http.Request) {
