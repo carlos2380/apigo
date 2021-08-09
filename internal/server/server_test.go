@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"apigo/internal/server"
+	"apigo/internal/storage/postgres"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -10,7 +11,8 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	srv := httptest.NewServer(server.NewServer().Router)
+	ctrlDB := &postgres.PostgresDB{}
+	srv := httptest.NewServer(server.NewServer(ctrlDB).Router)
 	defer srv.Close()
 
 	tableTest := []struct {
@@ -50,8 +52,8 @@ func TestServer(t *testing.T) {
 			http.MethodDelete,
 			srv.URL + "/api/stores/1",
 			"",
-			`{"error":"Item Not Found"}`,
-			http.StatusNotFound,
+			"",
+			http.StatusOK,
 		},
 		{
 			"Test 5: Create s store id 1",

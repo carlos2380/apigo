@@ -11,50 +11,62 @@ import (
 
 var stores []api.Store
 
-func GetStores(w http.ResponseWriter, r *http.Request) {
+func (env *EnvHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stores)
+
+	retStores, err := env.CtrlDB.GetStores()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Bad Request"})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(retStores)
 }
 
-func GetStore(w http.ResponseWriter, r *http.Request) {
+func (env *EnvHandler) GetStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
 	id := params["id"]
-	for _, item := range stores {
-		if item.ID == id {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(item)
-			return
-		}
+	retStore, err := env.CtrlDB.GetStore(id)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Item Not Found"})
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(
-		struct {
-			Error string `json:"error"`
-		}{Error: "Item Not Found"})
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(retStore)
+
 }
 
-func DeleteStore(w http.ResponseWriter, r *http.Request) {
+func (env *EnvHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
-	for i, store := range stores {
-		if store.ID == id {
-			stores = append(stores[:i], stores[i+1:]...)
-			w.WriteHeader(http.StatusOK)
-			//json.NewEncoder(w).Encode(stores)
-			return
-		}
+
+	err := env.CtrlDB.DeleteStore(id)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Item Not Found"})
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(
-		struct {
-			Error string `json:"error"`
-		}{Error: "Item Not Found"})
+	w.WriteHeader(http.StatusOK)
 }
 
-func PostStore(w http.ResponseWriter, r *http.Request) {
+func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var store api.Store
 	dec := json.NewDecoder(r.Body)
@@ -69,13 +81,43 @@ func PostStore(w http.ResponseWriter, r *http.Request) {
 			}{Error: "Bad Request"})
 		return
 	}
-	stores = append(stores, store)
+	err = env.CtrlDB.PostStore(&store)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Error on update DB"})
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	//json.NewEncoder(w).Encode("")
-
 }
 
-func PutStore(w http.ResponseWriter, r *http.Request) {
+func (env *EnvHandler) PutStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stores)
+	var store api.Store
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	err := dec.Decode(&store)
+	if err != nil || store.ValidReq() != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Bad Request"})
+		return
+	}
+	err = env.CtrlDB.PutStore(&store)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Error on update DB"})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
