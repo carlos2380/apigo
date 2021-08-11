@@ -55,7 +55,7 @@ func (env *EnvHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	err := env.CtrlDB.DeleteStore(id)
+	rowsaffected, err := env.CtrlDB.DeleteStore(id)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -66,6 +66,10 @@ func (env *EnvHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(
+		struct {
+			Rowsaffected string `json:"rows_affected"`
+		}{Rowsaffected: rowsaffected})
 }
 
 func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {

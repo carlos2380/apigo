@@ -58,7 +58,7 @@ func TestServer(t *testing.T) {
 			http.MethodDelete,
 			srv.URL + "/api/stores/100",
 			"",
-			"",
+			`{"rows_affected":"0"}`,
 			http.StatusOK,
 		},
 		{
@@ -82,7 +82,7 @@ func TestServer(t *testing.T) {
 			http.MethodDelete,
 			srv.URL + "/api/stores/1",
 			"",
-			"",
+			`{"rows_affected":"1"}`,
 			http.StatusOK,
 		},
 		{

@@ -3,6 +3,7 @@ package postgres
 import (
 	"apigo/api"
 	"apigo/internal/storage"
+	"context"
 	"database/sql"
 	"strconv"
 	"time"
@@ -65,34 +66,60 @@ func (pdb *PostgresDB) GetStore(storeID string) (*api.Store, error) {
 	return &api.Store{Id: strconv.FormatInt(s.id, 10), Name: s.name, Address: s.address}, nil
 }
 
-func (pdb *PostgresDB) DeleteStore(storeID string) error {
+func (pdb *PostgresDB) DeleteStore(storeID string) (string, error) {
 	sqlStatement := `
 		DELETE FROM store
 		WHERE id = $1
 	`
-	_, err := pdb.Db.Exec(sqlStatement, storeID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (pdb *PostgresDB) PostStore(storeReq *api.Store) (string, error) {
-	sqlStatement := `
-		INSERT INTO store (name, address, created_on, modified_on)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id
-	`
-	timeStr := time.Now().Format(time.RFC3339)
-	lastinsertid := int64(0)
-	err := pdb.Db.QueryRow(sqlStatement, storeReq.Name, storeReq.Address, timeStr, timeStr).Scan(&lastinsertid)
-
+	contxt := context.Background()
+	tx, err := pdb.Db.BeginTx(contxt, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return strconv.FormatInt(lastinsertid, 10), nil
+	resultsql, err := tx.ExecContext(contxt, sqlStatement, storeID)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+	rowsAffected, err := resultsql.RowsAffected()
+	if err != nil {
+		return "", err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return "", err
+	}
+
+	return strconv.FormatInt(rowsAffected, 10), nil
+}
+
+func (pdb *PostgresDB) PostStore(storeReq *api.Store) (string, error) {
+
+	timeStr := time.Now().Format(time.RFC3339)
+	sqlStatement := "INSERT INTO store (name, address, created_on, modified_on)" +
+		"VALUES ( '" + storeReq.Name + "', '" + storeReq.Address + "', '" + timeStr + "', '" + timeStr + "')" +
+		"RETURNING id"
+	lastInsertid := int64(0)
+
+	contxt := context.Background()
+	tx, err := pdb.Db.BeginTx(contxt, nil)
+	if err != nil {
+		return "", err
+	}
+
+	err = tx.QueryRowContext(contxt, sqlStatement).Scan(&lastInsertid)
+
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return "", err
+	}
+	return strconv.FormatInt(lastInsertid, 10), nil
 }
 
 func (pdb *PostgresDB) PutStore(storeReq *api.Store) error {
@@ -102,7 +129,19 @@ func (pdb *PostgresDB) PutStore(storeReq *api.Store) error {
 		WHERE id = $4
 	`
 	timeStr := time.Now().Format(time.RFC3339)
-	_, err := pdb.Db.Exec(sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.Id)
+
+	contxt := context.Background()
+	tx, err := pdb.Db.BeginTx(contxt, nil)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(contxt, sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.Id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}

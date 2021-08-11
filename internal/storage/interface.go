@@ -6,7 +6,7 @@ type Store struct{}
 type DataBase interface {
 	GetStores() ([]api.Store, error)
 	GetStore(storeID string) (*api.Store, error)
-	DeleteStore(storeID string) error
+	DeleteStore(storeID string) (string, error)
 	PostStore(storeReq *api.Store) (string, error)
 	PutStore(storeReq *api.Store) error
 }
