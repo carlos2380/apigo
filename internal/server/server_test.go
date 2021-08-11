@@ -4,6 +4,7 @@ import (
 	"apigo/internal/server"
 	"apigo/internal/storage/postgres"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,8 +12,13 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	ctrlDB := &postgres.PostgresDB{}
-	srv := httptest.NewServer(server.NewServer(ctrlDB).Router)
+	storage, err := postgres.NewPostgresStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer storage.(*postgres.PostgresDB).CloseDB()
+	srv := httptest.NewServer(server.NewRouter(storage))
 	defer srv.Close()
 
 	tableTest := []struct {
@@ -26,41 +32,41 @@ func TestServer(t *testing.T) {
 		{
 			"Test 1: Get a stores that doesn't exist",
 			http.MethodGet,
-			srv.URL + "/api/stores/0",
+			srv.URL + "/api/stores/1000",
 			"",
 			`{"error":"Item Not Found"}`,
 			http.StatusNotFound,
 		},
 		{
-			"Test 2: Create a store id 0",
+			"Test 2: Create a store",
 			http.MethodPost,
 			srv.URL + "/api/stores",
-			`{"id":"0","name":"Store0"}`,
-			``,
+			`{"name":"store1","address":"address1"}`,
+			`{"id":"1"}`,
 			http.StatusOK,
 		},
 		{
-			"Test 3: Get the store 0",
+			"Test 3: Get the store 1",
 			http.MethodGet,
-			srv.URL + "/api/stores/0",
+			srv.URL + "/api/stores/1",
 			"",
-			`{"id":"0","name":"Store0"}`,
+			`{"id":"1","name":"store1","address":"address1"}`,
 			http.StatusOK,
 		},
 		{
 			"Test 4: Delete a store that doesn't exist",
 			http.MethodDelete,
-			srv.URL + "/api/stores/1",
+			srv.URL + "/api/stores/100",
 			"",
 			"",
 			http.StatusOK,
 		},
 		{
-			"Test 5: Create s store id 1",
+			"Test 5: Create a store",
 			http.MethodPost,
 			srv.URL + "/api/stores",
-			`{"id":"1","name":"Store1"}`,
-			"",
+			`{"name":"store2","address":"address2"}`,
+			`{"id":"2"}`,
 			http.StatusOK,
 		},
 		{
@@ -68,13 +74,13 @@ func TestServer(t *testing.T) {
 			http.MethodGet,
 			srv.URL + "/api/stores",
 			"",
-			`[{"id":"0","name":"Store0"},{"id":"1","name":"Store1"}]`,
+			`[{"id":"1","name":"store1","address":"address1"},{"id":"2","name":"store2","address":"address2"}]`,
 			http.StatusOK,
 		},
 		{
-			"Test 7: Delete store id 0",
+			"Test 7: Delete store",
 			http.MethodDelete,
-			srv.URL + "/api/stores/0",
+			srv.URL + "/api/stores/1",
 			"",
 			"",
 			http.StatusOK,
@@ -82,29 +88,21 @@ func TestServer(t *testing.T) {
 		{
 			"Test 8: Get store that is deleted",
 			http.MethodGet,
-			srv.URL + "/api/stores/0",
+			srv.URL + "/api/stores/1",
 			"",
 			`{"error":"Item Not Found"}`,
 			http.StatusNotFound,
 		},
 		{
-			"Test 9: Create a store with empty parameters",
+			"Test 9: Create a store with wrong parameters",
 			http.MethodPost,
 			srv.URL + "/api/stores",
-			`{"id":"","name":""}`,
+			`{"names":"store2","adxress":"address2"}`,
 			`{"error":"Bad Request"}`,
 			http.StatusBadRequest,
 		},
 		{
-			"Test 10: Create a store with wrong parameters",
-			http.MethodPost,
-			srv.URL + "/api/stores",
-			`{"idc":"12121","myname":"Soter"}`,
-			`{"error":"Bad Request"}`,
-			http.StatusBadRequest,
-		},
-		{
-			"Test 11: Do a delete in stores",
+			"Test 10: Do a delete in stores",
 			http.MethodDelete,
 			srv.URL + "/api/stores",
 			"",

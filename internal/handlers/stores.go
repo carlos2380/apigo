@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"apigo/api"
+	"apigo/internal/storage"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -9,15 +10,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var stores []api.Store
+type EnvHandler struct {
+	CtrlDB storage.DataBase
+}
 
 func (env *EnvHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	retStores, err := env.CtrlDB.GetStores()
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
@@ -72,7 +74,7 @@ func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	err := dec.Decode(&store)
-	if err != nil || store.ValidReq() != nil {
+	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(
@@ -81,10 +83,10 @@ func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 			}{Error: "Bad Request"})
 		return
 	}
-	err = env.CtrlDB.PostStore(&store)
+	id, err := env.CtrlDB.PostStore(&store)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
@@ -92,6 +94,10 @@ func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(
+		struct {
+			Id string `json:"id"`
+		}{Id: id})
 }
 
 func (env *EnvHandler) PutStore(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +118,7 @@ func (env *EnvHandler) PutStore(w http.ResponseWriter, r *http.Request) {
 	err = env.CtrlDB.PutStore(&store)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`

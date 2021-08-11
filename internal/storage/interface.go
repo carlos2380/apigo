@@ -4,20 +4,18 @@ import "apigo/api"
 
 type Store struct{}
 type DataBase interface {
-	InitDB() error
-	CloseB() error
 	GetStores() ([]api.Store, error)
 	GetStore(storeID string) (*api.Store, error)
 	DeleteStore(storeID string) error
-	PostStore(storeReq *api.Store) error
+	PostStore(storeReq *api.Store) (string, error)
 	PutStore(storeReq *api.Store) error
 }
 
 /*
 type Customer struct{}
 type CustomerStorage interface {
-	CreateCustomer() error
-	ListCustomers(customerID string) ([]Customer, error)
+	CretateCustomer() error
+	LisCustomers(customerID string) ([]Customer, error)
 	GetCustomer() (*Customer, error)
 	DeleteCustomer() error
 }
