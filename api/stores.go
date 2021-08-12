@@ -3,9 +3,9 @@ package api
 import "errors"
 
 type Store struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Address string `json:"address"`
+	Id      string  `json:"id"`
+	Name    *string `json:"name"`
+	Address *string `json:"address"`
 }
 
 func (s *Store) ValidReq() error {

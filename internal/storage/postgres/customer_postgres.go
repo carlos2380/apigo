@@ -18,10 +18,10 @@ type CustomerDB struct {
 }
 type Customer struct {
 	id        int64
-	firstName string
-	lastName  string
-	age       int
-	email     string
+	firstName *string
+	lastName  *string
+	age       *int
+	email     *string
 	created   time.Time
 	modified  time.Time
 }
@@ -56,7 +56,13 @@ func (pdb *CustomerDB) GetCustomers() ([]*api.Customer, error) {
 		if err != nil {
 			return nil, err
 		}
-		customers = append(customers, &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: strconv.Itoa(c.age), Email: c.email})
+
+		age := ""
+		if c.age != nil {
+			age = strconv.Itoa(*c.age)
+		}
+
+		customers = append(customers, &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email})
 	}
 	return customers, nil
 }
@@ -68,7 +74,11 @@ func (pdb *CustomerDB) GetCustomer(customerID string) (*api.Customer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: strconv.Itoa(c.age), Email: c.email}, nil
+	age := ""
+	if c.age != nil {
+		age = strconv.Itoa(*c.age)
+	}
+	return &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email}, nil
 }
 
 func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
@@ -115,7 +125,7 @@ func (pdb *CustomerDB) PostCustomer(customerReq *api.Customer) (_ string, err er
 	sqlStatement := fmt.Sprintf(`INSERT INTO customer (first_name, last_name, age, email, created_on, modified_on)
 		VALUES ( '%s', '%s', '%s', '%s', '%s', '%s')
 		RETURNING id`,
-		customerReq.FirstName, customerReq.LastName, customerReq.Age, customerReq.Email, timeStr, timeStr)
+		*customerReq.FirstName, *customerReq.LastName, *customerReq.Age, *customerReq.Email, timeStr, timeStr)
 	lastInsertid := int64(0)
 
 	ctx := context.Background()

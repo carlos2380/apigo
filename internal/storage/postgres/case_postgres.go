@@ -17,8 +17,8 @@ type CaseDB struct {
 
 type Case struct {
 	id         int64
-	startTime  time.Time
-	endTime    time.Time
+	startTime  *time.Time
+	endTime    *time.Time
 	customerID int64
 	storeID    int64
 	created    time.Time
@@ -55,7 +55,16 @@ func (pdb *CaseDB) GetCases() ([]*api.Case, error) {
 		if err != nil {
 			return nil, err
 		}
-		cases = append(cases, &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: c.startTime.String(), EndTime: c.endTime.String(), CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)})
+		starttime := ""
+		if c.startTime != nil {
+			starttime = (*c.startTime).String()
+		}
+		endtime := ""
+		if c.endTime != nil {
+			endtime = (*c.endTime).String()
+		}
+		cases = append(cases, &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: &starttime, EndTime: &endtime, CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)})
+
 	}
 	return cases, nil
 }
@@ -67,7 +76,15 @@ func (pdb *CaseDB) GetCase(caseID string) (*api.Case, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: c.startTime.String(), EndTime: c.endTime.String(), CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)}, nil
+	starttime := ""
+	if c.startTime != nil {
+		starttime = (*c.startTime).String()
+	}
+	endtime := ""
+	if c.endTime != nil {
+		endtime = (*c.endTime).String()
+	}
+	return &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: &starttime, EndTime: &endtime, CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)}, nil
 }
 
 func (pdb *CaseDB) DeleteCase(caseID string) (err error) {
@@ -113,7 +130,7 @@ func (pdb *CaseDB) PostCase(caseReq *api.Case) (_ string, err error) {
 	sqlStatement := fmt.Sprintf(`INSERT INTO kase (start_time_stamp, end_time_stamp, customer_id, store_id, created_on, modified_on)
 		VALUES ( '%s', '%s', '%s', '%s', '%s', '%s')
 		RETURNING id`,
-		caseReq.StartTime, caseReq.EndTime, caseReq.CustomerId, caseReq.StoreId, timeStr, timeStr)
+		*caseReq.StartTime, *caseReq.EndTime, caseReq.CustomerId, caseReq.StoreId, timeStr, timeStr)
 	lastInsertid := int64(0)
 
 	ctx := context.Background()
@@ -168,4 +185,30 @@ func (pdb *CaseDB) PutCase(caseReq *api.Case) (err error) {
 	}
 
 	return nil
+}
+
+func (pdb *CaseDB) GetCasesByStoreId(storeID string) ([]*api.Case, error) {
+	rows, err := pdb.Db.Query("Select * From kase Where store_id = '" + storeID + "'")
+	if err != nil {
+		return nil, err
+	}
+	var cases []*api.Case
+	for rows.Next() {
+		var c Case
+		err = rows.Scan(&c.id, &c.startTime, &c.endTime, &c.customerID, &c.storeID, &c.created, &c.modified)
+		if err != nil {
+			return nil, err
+		}
+
+		starttime := ""
+		if c.startTime != nil {
+			starttime = (*c.startTime).String()
+		}
+		endtime := ""
+		if c.endTime != nil {
+			endtime = (*c.endTime).String()
+		}
+		cases = append(cases, &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: &starttime, EndTime: &endtime, CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)})
+	}
+	return cases, nil
 }

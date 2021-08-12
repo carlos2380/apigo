@@ -9,4 +9,5 @@ type CaseStorage interface {
 	DeleteCase(caseID string) error
 	PostCase(caseReq *api.Case) (string, error)
 	PutCase(caseReq *api.Case) error
+	GetCasesByStoreId(storeID string) ([]*api.Case, error)
 }

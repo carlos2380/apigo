@@ -18,8 +18,8 @@ type StoreDB struct {
 }
 type Store struct {
 	id       int64
-	name     string
-	address  string
+	name     *string
+	address  *string
 	created  time.Time
 	modified time.Time
 }
@@ -112,7 +112,7 @@ func (pdb *StoreDB) PostStore(storeReq *api.Store) (_ string, err error) {
 	sqlStatement := fmt.Sprintf(`INSERT INTO store (name, address, created_on, modified_on)
 		VALUES ( '%s', '%s', '%s', '%s')
 		RETURNING id`,
-		storeReq.Name, storeReq.Address, timeStr, timeStr)
+		*storeReq.Name, *storeReq.Address, timeStr, timeStr)
 	lastInsertid := int64(0)
 
 	ctx := context.Background()
