@@ -157,3 +157,34 @@ func (sHandler *StorageHandler) GetCasesByStoreId(w http.ResponseWriter, r *http
 		json.NewEncoder(w).Encode("[]")
 	}
 }
+
+func (sHandler *StorageHandler) GetCasesByCustomerId(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	id := params["id"]
+	if id == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Bad Request"})
+		return
+	}
+
+	retCases, err := sHandler.StgCase.GetCasesByCustomerId(id)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			struct {
+				Error string `json:"error"`
+			}{Error: "Bad Request"})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	if len(retCases) > 0 {
+		json.NewEncoder(w).Encode(retCases)
+	} else {
+		json.NewEncoder(w).Encode("[]")
+	}
+}

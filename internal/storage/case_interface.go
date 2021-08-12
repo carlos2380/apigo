@@ -10,4 +10,5 @@ type CaseStorage interface {
 	PostCase(caseReq *api.Case) (string, error)
 	PutCase(caseReq *api.Case) error
 	GetCasesByStoreId(storeID string) ([]*api.Case, error)
+	GetCasesByCustomerId(storeID string) ([]*api.Case, error)
 }

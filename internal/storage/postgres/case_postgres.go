@@ -212,3 +212,29 @@ func (pdb *CaseDB) GetCasesByStoreId(storeID string) ([]*api.Case, error) {
 	}
 	return cases, nil
 }
+
+func (pdb *CaseDB) GetCasesByCustomerId(customerID string) ([]*api.Case, error) {
+	rows, err := pdb.Db.Query("Select * From kase Where customer_id = '" + customerID + "'")
+	if err != nil {
+		return nil, err
+	}
+	var cases []*api.Case
+	for rows.Next() {
+		var c Case
+		err = rows.Scan(&c.id, &c.startTime, &c.endTime, &c.customerID, &c.storeID, &c.created, &c.modified)
+		if err != nil {
+			return nil, err
+		}
+
+		starttime := ""
+		if c.startTime != nil {
+			starttime = (*c.startTime).String()
+		}
+		endtime := ""
+		if c.endTime != nil {
+			endtime = (*c.endTime).String()
+		}
+		cases = append(cases, &api.Case{Id: strconv.FormatInt(c.id, 10), StartTime: &starttime, EndTime: &endtime, CustomerId: strconv.FormatInt(c.customerID, 10), StoreId: strconv.FormatInt(c.storeID, 10)})
+	}
+	return cases, nil
+}

@@ -23,6 +23,7 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/customers/{id}", stgHandler.DeleteCustomer).Methods(http.MethodDelete)
 	r.HandleFunc("/api/customers", stgHandler.PostCustomer).Methods(http.MethodPost)
 	r.HandleFunc("/api/customers/{id}", stgHandler.PutCustomer).Methods(http.MethodPut)
+	r.HandleFunc("/api/customers/{id}/cases", stgHandler.GetCasesByCustomerId).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet)
 	r.HandleFunc("/api/cases/{id}", stgHandler.GetCase).Methods(http.MethodGet)
