@@ -31,5 +31,6 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/cases", stgHandler.PostCase).Methods(http.MethodPost)
 	r.HandleFunc("/api/cases/{id}", stgHandler.PutCase).Methods(http.MethodPut)
 	r.HandleFunc("/api/cases/{id}/customers", stgHandler.GetCustomerByCaseId).Methods(http.MethodGet)
+	r.HandleFunc("/api/cases/{id}/stores", stgHandler.GetStoreByCaseId).Methods(http.MethodGet)
 	return r
 }
