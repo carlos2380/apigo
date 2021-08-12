@@ -90,7 +90,6 @@ func (pdb *StoreDB) DeleteStore(storeID string) (err error) {
 
 	resultsql, err := tx.ExecContext(ctx, sqlStatement, storeID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	rowsAffected, err := resultsql.RowsAffected()

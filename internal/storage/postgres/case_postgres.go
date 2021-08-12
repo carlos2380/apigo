@@ -109,7 +109,6 @@ func (pdb *CaseDB) DeleteCase(caseID string) (err error) {
 
 	resultsql, err := tx.ExecContext(ctx, sqlStatement, caseID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	rowsAffected, err := resultsql.RowsAffected()

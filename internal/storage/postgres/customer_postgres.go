@@ -103,7 +103,6 @@ func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 
 	resultsql, err := tx.ExecContext(ctx, sqlStatement, customerID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	rowsAffected, err := resultsql.RowsAffected()
