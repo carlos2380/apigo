@@ -17,8 +17,15 @@ func TestServer(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	defer storage.(*postgres.PostgresDB).CloseDB()
-	srv := httptest.NewServer(server.NewRouter(storage))
+	defer storage.(*postgres.StoreDB).CloseDB()
+
+	customer, err := postgres.NewPostgresCustomer()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer customer.(*postgres.CustomerDB).CloseDB()
+	srv := httptest.NewServer(server.NewRouter(storage, customer))
 	defer srv.Close()
 
 	tableTest := []struct {
@@ -58,8 +65,8 @@ func TestServer(t *testing.T) {
 			http.MethodDelete,
 			srv.URL + "/api/stores/100",
 			"",
-			`{"rows_affected":"0"}`,
-			http.StatusOK,
+			`{"error":"Item Not Found"}`,
+			http.StatusNotFound,
 		},
 		{
 			"Test 5: Create a store",
@@ -82,7 +89,7 @@ func TestServer(t *testing.T) {
 			http.MethodDelete,
 			srv.URL + "/api/stores/1",
 			"",
-			`{"rows_affected":"1"}`,
+			"",
 			http.StatusOK,
 		},
 		{
@@ -108,6 +115,46 @@ func TestServer(t *testing.T) {
 			"",
 			"",
 			http.StatusMethodNotAllowed,
+		},
+		{
+			"Test 11: Create customer",
+			http.MethodPost,
+			srv.URL + "/api/customers",
+			`{"first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
+			`{"id":"1"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 12: Get customer by Id",
+			http.MethodGet,
+			srv.URL + "/api/customers/1",
+			``,
+			`{"id":"1","first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 13: Put on customer 1",
+			http.MethodPut,
+			srv.URL + "/api/customers/1",
+			`{"id":"1","first_name":"mick","last_name":"addams","age":"20","email":"maddams@gmail.com"}`,
+			``,
+			http.StatusOK,
+		},
+		{
+			"Test 14: Get customers",
+			http.MethodGet,
+			srv.URL + "/api/customers",
+			``,
+			`[{"id":"1","first_name":"mick","last_name":"addams","age":"20","email":"maddams@gmail.com"}]`,
+			http.StatusOK,
+		},
+		{
+			"Test 15: Delete by Id",
+			http.MethodDelete,
+			srv.URL + "/api/customers/1",
+			``,
+			``,
+			http.StatusOK,
 		},
 	}
 

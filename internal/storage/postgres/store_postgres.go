@@ -5,13 +5,15 @@ import (
 	"apigo/internal/storage"
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
-type PostgresDB struct {
+type StoreDB struct {
 	Db *sql.DB
 }
 type Store struct {
@@ -22,7 +24,7 @@ type Store struct {
 	modified time.Time
 }
 
-func NewPostgresStorage() (storage.DataBase, error) {
+func NewPostgresStorage() (storage.StoreStorage, error) {
 	uri := "user=postgres password=secret host=172.17.0.1 port=5432 dbname=postgres connect_timeout=20 sslmode=disable"
 	var err error
 	postgresDB, err := sql.Open("postgres", uri)
@@ -33,30 +35,30 @@ func NewPostgresStorage() (storage.DataBase, error) {
 		return nil, err
 
 	}
-	return &PostgresDB{Db: postgresDB}, nil
+	return &StoreDB{Db: postgresDB}, nil
 }
-func (pdb *PostgresDB) CloseDB() error {
+func (pdb *StoreDB) CloseDB() error {
 	return pdb.Db.Close()
 }
 
-func (pdb *PostgresDB) GetStores() ([]api.Store, error) {
+func (pdb *StoreDB) GetStores() ([]*api.Store, error) {
 	rows, err := pdb.Db.Query("Select * From store")
 	if err != nil {
 		return nil, err
 	}
-	var stores []api.Store
+	var stores []*api.Store
 	for rows.Next() {
 		var s Store
 		err = rows.Scan(&s.id, &s.name, &s.address, &s.created, &s.modified)
 		if err != nil {
 			return nil, err
 		}
-		stores = append(stores, api.Store{Id: strconv.FormatInt(s.id, 10), Name: s.name, Address: s.address})
+		stores = append(stores, &api.Store{Id: strconv.FormatInt(s.id, 10), Name: s.name, Address: s.address})
 	}
 	return stores, nil
 }
 
-func (pdb *PostgresDB) GetStore(storeID string) (*api.Store, error) {
+func (pdb *StoreDB) GetStore(storeID string) (*api.Store, error) {
 	row := pdb.Db.QueryRow("Select * From store WHERE id = '" + storeID + "'")
 	s := &Store{}
 	err := row.Scan(&s.id, &s.name, &s.address, &s.created, &s.modified)
@@ -66,63 +68,77 @@ func (pdb *PostgresDB) GetStore(storeID string) (*api.Store, error) {
 	return &api.Store{Id: strconv.FormatInt(s.id, 10), Name: s.name, Address: s.address}, nil
 }
 
-func (pdb *PostgresDB) DeleteStore(storeID string) (string, error) {
+func (pdb *StoreDB) DeleteStore(storeID string) (err error) {
 	sqlStatement := `
 		DELETE FROM store
 		WHERE id = $1
 	`
-	contxt := context.Background()
-	tx, err := pdb.Db.BeginTx(contxt, nil)
+	ctx := context.Background()
+	tx, err := pdb.Db.BeginTx(ctx, nil)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	resultsql, err := tx.ExecContext(contxt, sqlStatement, storeID)
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			_ = tx.Rollback()
+		}
+	}()
+
+	resultsql, err := tx.ExecContext(ctx, sqlStatement, storeID)
 	if err != nil {
 		tx.Rollback()
-		return "", err
+		return err
 	}
 	rowsAffected, err := resultsql.RowsAffected()
 	if err != nil {
-		return "", err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return "", err
+		return err
 	}
 
-	return strconv.FormatInt(rowsAffected, 10), nil
+	if rowsAffected < 1 {
+		err = errors.New("item no found")
+		return
+	}
+
+	return nil
 }
 
-func (pdb *PostgresDB) PostStore(storeReq *api.Store) (string, error) {
+func (pdb *StoreDB) PostStore(storeReq *api.Store) (_ string, err error) {
 
 	timeStr := time.Now().Format(time.RFC3339)
-	sqlStatement := "INSERT INTO store (name, address, created_on, modified_on)" +
-		"VALUES ( '" + storeReq.Name + "', '" + storeReq.Address + "', '" + timeStr + "', '" + timeStr + "')" +
-		"RETURNING id"
+	sqlStatement := fmt.Sprintf(`INSERT INTO store (name, address, created_on, modified_on)
+		VALUES ( '%s', '%s', '%s', '%s')
+		RETURNING id`,
+		storeReq.Name, storeReq.Address, timeStr, timeStr)
 	lastInsertid := int64(0)
 
-	contxt := context.Background()
-	tx, err := pdb.Db.BeginTx(contxt, nil)
+	ctx := context.Background()
+	tx, err := pdb.Db.BeginTx(ctx, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = tx.QueryRowContext(contxt, sqlStatement).Scan(&lastInsertid)
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			_ = tx.Rollback()
+		}
+	}()
 
+	err = tx.QueryRowContext(ctx, sqlStatement).Scan(&lastInsertid)
 	if err != nil {
-		tx.Rollback()
 		return "", err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return "", err
-	}
 	return strconv.FormatInt(lastInsertid, 10), nil
 }
 
-func (pdb *PostgresDB) PutStore(storeReq *api.Store) error {
+func (pdb *StoreDB) PutStore(storeReq *api.Store) (err error) {
 	sqlStatement := `
 		UPDATE store
 		SET name = $1, address = $2, modified_on = $3
@@ -130,20 +146,25 @@ func (pdb *PostgresDB) PutStore(storeReq *api.Store) error {
 	`
 	timeStr := time.Now().Format(time.RFC3339)
 
-	contxt := context.Background()
-	tx, err := pdb.Db.BeginTx(contxt, nil)
+	ctx := context.Background()
+	tx, err := pdb.Db.BeginTx(ctx, nil)
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			_ = tx.Rollback()
+		}
+	}()
+
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(contxt, sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.Id)
+	_, err = tx.ExecContext(ctx, sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.Id)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
 	return nil
 }

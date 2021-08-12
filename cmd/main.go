@@ -14,20 +14,33 @@ func main() {
 	dbDriver := flag.String("driver", "", "Database driver (postgres only supported now)")
 	flag.Parse()
 
-	var storage storage.DataBase
+	var stgStore storage.StoreStorage
+	var stgCustomer storage.CustomerStorage
+
 	var err error
 	switch *dbDriver {
 	case "postgres":
-		storage, err = postgres.NewPostgresStorage()
+		stgStore, err = postgres.NewPostgresStorage()
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer stgStore.(*postgres.StoreDB).CloseDB()
 
-		defer storage.(*postgres.PostgresDB).CloseDB()
+		stgCustomer, err = postgres.NewPostgresCustomer()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer stgCustomer.(*postgres.CustomerDB).CloseDB()
+
+		/*stgStore, err = postgres.NewPostgresStorage()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer stgStore.(*postgres.StoreDB).CloseDB()*/
 	default:
 		log.Fatalf("Unsupported driver %s", *dbDriver)
 	}
 
 	log.Printf("Listening on 0.0.0.0:%s", *port)
-	log.Fatal(http.ListenAndServe(":"+*port, server.NewRouter(storage)))
+	log.Fatal(http.ListenAndServe(":"+*port, server.NewRouter(stgStore, stgCustomer)))
 }

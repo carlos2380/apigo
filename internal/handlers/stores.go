@@ -10,13 +10,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type EnvHandler struct {
-	CtrlDB storage.DataBase
+type StorageHandler struct {
+	StgStore    storage.StoreStorage
+	StgCustomer storage.CustomerStorage
+	/*CtrlDB3 storage.CaseStorage*/
 }
 
-func (env *EnvHandler) GetStores(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	retStores, err := env.CtrlDB.GetStores()
+	retStores, err := sHandler.StgStore.GetStores()
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -30,12 +32,12 @@ func (env *EnvHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(retStores)
 }
 
-func (env *EnvHandler) GetStore(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
 	id := params["id"]
-	retStore, err := env.CtrlDB.GetStore(id)
+	retStore, err := sHandler.StgStore.GetStore(id)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
@@ -50,15 +52,15 @@ func (env *EnvHandler) GetStore(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (env *EnvHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
 
-	rowsaffected, err := env.CtrlDB.DeleteStore(id)
+	err := sHandler.StgStore.DeleteStore(id)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
@@ -66,13 +68,9 @@ func (env *EnvHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(
-		struct {
-			Rowsaffected string `json:"rows_affected"`
-		}{Rowsaffected: rowsaffected})
 }
 
-func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var store api.Store
 	dec := json.NewDecoder(r.Body)
@@ -87,7 +85,7 @@ func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 			}{Error: "Bad Request"})
 		return
 	}
-	id, err := env.CtrlDB.PostStore(&store)
+	id, err := sHandler.StgStore.PostStore(&store)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -104,7 +102,7 @@ func (env *EnvHandler) PostStore(w http.ResponseWriter, r *http.Request) {
 		}{Id: id})
 }
 
-func (env *EnvHandler) PutStore(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) PutStore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var store api.Store
 	dec := json.NewDecoder(r.Body)
@@ -119,7 +117,7 @@ func (env *EnvHandler) PutStore(w http.ResponseWriter, r *http.Request) {
 			}{Error: "Bad Request"})
 		return
 	}
-	err = env.CtrlDB.PutStore(&store)
+	err = sHandler.StgStore.PutStore(&store)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
