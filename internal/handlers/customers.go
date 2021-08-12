@@ -22,7 +22,11 @@ func (sHandler *StorageHandler) GetCustomers(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(retCustomers)
+	if len(retCustomers) > 0 {
+		json.NewEncoder(w).Encode(retCustomers)
+	} else {
+		json.NewEncoder(w).Encode("[]")
+	}
 }
 
 func (sHandler *StorageHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {

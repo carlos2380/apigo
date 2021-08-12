@@ -2,19 +2,12 @@ package handlers
 
 import (
 	"apigo/api"
-	"apigo/internal/storage"
 	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
-
-type StorageHandler struct {
-	StgStore    storage.StoreStorage
-	StgCustomer storage.CustomerStorage
-	/*CtrlDB3 storage.CaseStorage*/
-}
 
 func (sHandler *StorageHandler) GetStores(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -29,7 +22,11 @@ func (sHandler *StorageHandler) GetStores(w http.ResponseWriter, r *http.Request
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(retStores)
+	if len(retStores) > 0 {
+		json.NewEncoder(w).Encode(retStores)
+	} else {
+		json.NewEncoder(w).Encode("[]")
+	}
 }
 
 func (sHandler *StorageHandler) GetStore(w http.ResponseWriter, r *http.Request) {

@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorage) http.Handler {
+func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorage, stgCase storage.CaseStorage) http.Handler {
 	r := mux.NewRouter()
-	stgHandler := &handlers.StorageHandler{StgStore: stgStore, StgCustomer: stgCustomer}
+	stgHandler := &handlers.StorageHandler{StgStore: stgStore, StgCustomer: stgCustomer, StgCase: stgCase}
 	r.HandleFunc("/api/stores", stgHandler.GetStores).Methods(http.MethodGet)
 	r.HandleFunc("/api/stores/{id}", stgHandler.GetStore).Methods(http.MethodGet)
 	r.HandleFunc("/api/stores/{id}", stgHandler.DeleteStore).Methods(http.MethodDelete)
@@ -23,5 +23,10 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/customers", stgHandler.PostCustomer).Methods(http.MethodPost)
 	r.HandleFunc("/api/customers/{id}", stgHandler.PutCustomer).Methods(http.MethodPut)
 
+	r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet)
+	r.HandleFunc("/api/cases/{id}", stgHandler.GetCase).Methods(http.MethodGet)
+	r.HandleFunc("/api/cases/{id}", stgHandler.DeleteCase).Methods(http.MethodDelete)
+	r.HandleFunc("/api/cases", stgHandler.PostCase).Methods(http.MethodPost)
+	r.HandleFunc("/api/cases/{id}", stgHandler.PutCase).Methods(http.MethodPut)
 	return r
 }

@@ -25,7 +25,15 @@ func TestServer(t *testing.T) {
 	}
 
 	defer customer.(*postgres.CustomerDB).CloseDB()
-	srv := httptest.NewServer(server.NewRouter(storage, customer))
+
+	cs, err := postgres.NewPostgresCase()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cs.(*postgres.CaseDB).CloseDB()
+
+	srv := httptest.NewServer(server.NewRouter(storage, customer, cs))
 	defer srv.Close()
 
 	tableTest := []struct {
@@ -154,6 +162,62 @@ func TestServer(t *testing.T) {
 			srv.URL + "/api/customers/1",
 			``,
 			``,
+			http.StatusOK,
+		},
+		{
+			"Test : Create customer",
+			http.MethodPost,
+			srv.URL + "/api/customers",
+			`{"first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
+			`{"id":"2"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 16: Create case",
+			http.MethodPost,
+			srv.URL + "/api/cases",
+			`{"start_time_stamp":"2021-08-12 04:35:36","end_time_stamp":"2021-08-12 04:35:36","customer_id":"2","store_id":"2"}`,
+			`{"id":"1"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 17: Create case",
+			http.MethodPost,
+			srv.URL + "/api/cases",
+			`{"start_time_stamp":"2021-08-14 04:35:36","end_time_stamp":"2021-08-14 04:35:36","customer_id":"2","store_id":"2"}`,
+			`{"id":"2"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 14: Get cases",
+			http.MethodGet,
+			srv.URL + "/api/cases",
+			``,
+			`[{"id":"1","start_time_stamp":"2021-08-12 04:35:36 +0000 +0000","end_time_stamp":"2021-08-12 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"},{"id":"2","start_time_stamp":"2021-08-14 04:35:36 +0000 +0000","end_time_stamp":"2021-08-14 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"}]`,
+			http.StatusOK,
+		},
+		{
+			"Test 19: Delete by Id",
+			http.MethodDelete,
+			srv.URL + "/api/cases/1",
+			``,
+			``,
+			http.StatusOK,
+		},
+		{
+			"Test: Delete by Id",
+			http.MethodDelete,
+			srv.URL + "/api/customers/2",
+			``,
+			``,
+			http.StatusOK,
+		},
+		{
+			"Test 20: Get cases",
+			http.MethodGet,
+			srv.URL + "/api/cases",
+			``,
+			"'[]'",
 			http.StatusOK,
 		},
 	}

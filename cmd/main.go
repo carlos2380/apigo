@@ -16,6 +16,7 @@ func main() {
 
 	var stgStore storage.StoreStorage
 	var stgCustomer storage.CustomerStorage
+	var stgCase storage.CaseStorage
 
 	var err error
 	switch *dbDriver {
@@ -32,15 +33,15 @@ func main() {
 		}
 		defer stgCustomer.(*postgres.CustomerDB).CloseDB()
 
-		/*stgStore, err = postgres.NewPostgresStorage()
+		stgCase, err = postgres.NewPostgresCase()
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer stgStore.(*postgres.StoreDB).CloseDB()*/
+		defer stgCase.(*postgres.CaseDB).CloseDB()
 	default:
 		log.Fatalf("Unsupported driver %s", *dbDriver)
 	}
 
 	log.Printf("Listening on 0.0.0.0:%s", *port)
-	log.Fatal(http.ListenAndServe(":"+*port, server.NewRouter(stgStore, stgCustomer)))
+	log.Fatal(http.ListenAndServe(":"+*port, server.NewRouter(stgStore, stgCustomer, stgCase)))
 }
