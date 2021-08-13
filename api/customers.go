@@ -3,18 +3,20 @@ package api
 import "errors"
 
 type Customer struct {
-	Id        string  `json:"id"`
+	ID        string  `json:"id"`
 	FirstName *string `json:"first_name"`
 	LastName  *string `json:"last_name"`
 	Age       *string `json:"age"`
 	Email     *string `json:"email"`
 }
 
-func (customer *Customer) ValidReq() error {
+type CustomersJSON struct {
+	Customers []*Customer `json:"customers"`
+}
 
-	if customer.Id != "" {
+func (customer *Customer) ValidReq() error {
+	if customer.ID != "" {
 		return nil
 	}
-
 	return errors.New("bad parameters")
 }

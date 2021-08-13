@@ -3,6 +3,8 @@ package server_test
 import (
 	"apigo/internal/server"
 	"apigo/internal/storage/postgres"
+	"context"
+	"database/sql"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,29 +13,42 @@ import (
 	"testing"
 )
 
+func exec(db *sql.DB, comand string) *sql.DB {
+	var err error
+	_, err = db.Exec(comand)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db
+}
+
 func TestServer(t *testing.T) {
-	storage, err := postgres.NewPostgresStorage()
+	password := "secret"
+	ip := "172.17.0.1"
+	port := "5432"
+	db, err := postgres.InitPostgres(&password, &ip, &port)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		err = postgres.ClosePostgres(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	defer storage.(*postgres.StoreDB).CloseDB()
+	db = exec(db, "DELETE FROM cases")
+	db = exec(db, "DELETE FROM customers")
+	db = exec(db, "DELETE FROM stores")
+	db = exec(db, "ALTER SEQUENCE cases_id_seq RESTART")
+	db = exec(db, "ALTER SEQUENCE customers_id_seq RESTART")
+	db = exec(db, "ALTER SEQUENCE stores_id_seq RESTART")
 
-	customer, err := postgres.NewPostgresCustomer()
-	if err != nil {
-		log.Fatal(err)
-	}
+	store := &postgres.StoreDB{DB: db}
+	customer := &postgres.CustomerDB{DB: db}
+	cs := &postgres.CaseDB{DB: db}
 
-	defer customer.(*postgres.CustomerDB).CloseDB()
-
-	cs, err := postgres.NewPostgresCase()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer cs.(*postgres.CaseDB).CloseDB()
-
-	srv := httptest.NewServer(server.NewRouter(storage, customer, cs))
+	srv := httptest.NewServer(server.NewRouter(store, customer, cs))
 	defer srv.Close()
 
 	tableTest := []struct {
@@ -56,7 +71,7 @@ func TestServer(t *testing.T) {
 			"Test 2: Create a store",
 			http.MethodPost,
 			srv.URL + "/api/stores",
-			`{"name":"store1","address":"address1"}`,
+			`{"id":"1","name":"store1","address":"address1"}`,
 			`{"id":"1"}`,
 			http.StatusOK,
 		},
@@ -80,7 +95,7 @@ func TestServer(t *testing.T) {
 			"Test 5: Create a store",
 			http.MethodPost,
 			srv.URL + "/api/stores",
-			`{"name":"store2","address":"address2"}`,
+			`{"id":"2","name":"store2","address":"address2"}`,
 			`{"id":"2"}`,
 			http.StatusOK,
 		},
@@ -89,7 +104,7 @@ func TestServer(t *testing.T) {
 			http.MethodGet,
 			srv.URL + "/api/stores",
 			"",
-			`[{"id":"1","name":"store1","address":"address1"},{"id":"2","name":"store2","address":"address2"}]`,
+			`{"stores":[{"id":"1","name":"store1","address":"address1"},{"id":"2","name":"store2","address":"address2"}]}`,
 			http.StatusOK,
 		},
 		{
@@ -153,7 +168,7 @@ func TestServer(t *testing.T) {
 			http.MethodGet,
 			srv.URL + "/api/customers",
 			``,
-			`[{"id":"1","first_name":"mick","last_name":"addams","age":"20","email":"maddams@gmail.com"}]`,
+			`{"customers":[{"id":"1","first_name":"mick","last_name":"addams","age":"20","email":"maddams@gmail.com"}]}`,
 			http.StatusOK,
 		},
 		{
@@ -168,7 +183,7 @@ func TestServer(t *testing.T) {
 			"Test : Create customer",
 			http.MethodPost,
 			srv.URL + "/api/customers",
-			`{"first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
+			`{"id":"2","first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
 			`{"id":"2"}`,
 			http.StatusOK,
 		},
@@ -193,7 +208,7 @@ func TestServer(t *testing.T) {
 			http.MethodGet,
 			srv.URL + "/api/cases",
 			``,
-			`[{"id":"1","start_time_stamp":"2021-08-12 04:35:36 +0000 +0000","end_time_stamp":"2021-08-12 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"},{"id":"2","start_time_stamp":"2021-08-14 04:35:36 +0000 +0000","end_time_stamp":"2021-08-14 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"}]`,
+			`{"cases":[{"id":"1","start_time_stamp":"2021-08-12 04:35:36 +0000 +0000","end_time_stamp":"2021-08-12 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"},{"id":"2","start_time_stamp":"2021-08-14 04:35:36 +0000 +0000","end_time_stamp":"2021-08-14 04:35:36 +0000 +0000","customer_id":"2","store_id":"2"}]}`,
 			http.StatusOK,
 		},
 		{
@@ -217,14 +232,15 @@ func TestServer(t *testing.T) {
 			http.MethodGet,
 			srv.URL + "/api/cases",
 			``,
-			"'[]'",
+			`{"cases":[]}`,
 			http.StatusOK,
 		},
 	}
 
 	for _, tt := range tableTest {
 		t.Run(tt.desc, func(t *testing.T) {
-			req, err := http.NewRequest(tt.httpMethod, tt.url, strings.NewReader(tt.bodyReqStr))
+			ctx := context.Background()
+			req, err := http.NewRequestWithContext(ctx, tt.httpMethod, tt.url, strings.NewReader(tt.bodyReqStr))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -250,5 +266,4 @@ func TestServer(t *testing.T) {
 			}
 		})
 	}
-
 }

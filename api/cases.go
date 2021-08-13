@@ -3,18 +3,20 @@ package api
 import "errors"
 
 type Case struct {
-	Id         string  `json:"id"`
+	ID         string  `json:"id"`
 	StartTime  *string `json:"start_time_stamp"`
 	EndTime    *string `json:"end_time_stamp"`
-	CustomerId string  `json:"customer_id"`
-	StoreId    string  `json:"store_id"`
+	CustomerID string  `json:"customer_id"`
+	StoreID    string  `json:"store_id"`
+}
+
+type CasesJSON struct {
+	Cases []*Case `json:"cases"`
 }
 
 func (cas *Case) ValidReq() error {
-
-	if cas.Id != "" {
+	if cas.ID != "" {
 		return nil
 	}
-
 	return errors.New("bad parameters")
 }

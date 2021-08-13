@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"apigo/api"
-	"apigo/internal/storage"
 	"context"
 	"database/sql"
 	"errors"
@@ -14,7 +13,7 @@ import (
 )
 
 type CustomerDB struct {
-	Db *sql.DB
+	DB *sql.DB
 }
 type Customer struct {
 	id        int64
@@ -26,30 +25,17 @@ type Customer struct {
 	modified  time.Time
 }
 
-func NewPostgresCustomer() (storage.CustomerStorage, error) {
-	uri := "user=postgres password=secret host=172.17.0.1 port=5432 dbname=postgres connect_timeout=20 sslmode=disable"
-	var err error
-	postgresDB, err := sql.Open("postgres", uri)
+func (pdb *CustomerDB) GetCustomers() (*api.CustomersJSON, error) {
+	rows, err := pdb.DB.Query("Select * From customers")
 	if err != nil {
 		return nil, err
 	}
-	if err := postgresDB.Ping(); err != nil {
-		return nil, err
-
-	}
-	return &CustomerDB{Db: postgresDB}, nil
-}
-
-func (pdb *CustomerDB) CloseDB() error {
-	return pdb.Db.Close()
-}
-
-func (pdb *CustomerDB) GetCustomers() ([]*api.Customer, error) {
-	rows, err := pdb.Db.Query("Select * From customer")
+	defer rows.Close()
+	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
-	var customers []*api.Customer
+	customers := []*api.Customer{}
 	for rows.Next() {
 		var c Customer
 		err = rows.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.created, &c.modified)
@@ -62,13 +48,21 @@ func (pdb *CustomerDB) GetCustomers() ([]*api.Customer, error) {
 			age = strconv.Itoa(*c.age)
 		}
 
-		customers = append(customers, &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email})
+		customers = append(
+			customers,
+			&api.Customer{
+				ID:        strconv.FormatInt(c.id, 10),
+				FirstName: c.firstName, LastName: c.lastName,
+				Age:   &age,
+				Email: c.email,
+			},
+		)
 	}
-	return customers, nil
+	return &api.CustomersJSON{Customers: customers}, nil
 }
 
 func (pdb *CustomerDB) GetCustomer(customerID string) (*api.Customer, error) {
-	row := pdb.Db.QueryRow("Select * From customer WHERE id = '" + customerID + "'")
+	row := pdb.DB.QueryRow(fmt.Sprintf("Select * From customers WHERE id = '%s'", customerID))
 	var c Customer
 	err := row.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.created, &c.modified)
 	if err != nil {
@@ -78,16 +72,16 @@ func (pdb *CustomerDB) GetCustomer(customerID string) (*api.Customer, error) {
 	if c.age != nil {
 		age = strconv.Itoa(*c.age)
 	}
-	return &api.Customer{Id: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email}, nil
+	return &api.Customer{ID: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email}, nil
 }
 
 func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 	sqlStatement := `
-		DELETE FROM customer
+		DELETE FROM customers
 		WHERE id = $1
 	`
 	ctx := context.Background()
-	tx, err := pdb.Db.BeginTx(ctx, nil)
+	tx, err := pdb.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -119,16 +113,15 @@ func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 }
 
 func (pdb *CustomerDB) PostCustomer(customerReq *api.Customer) (_ string, err error) {
-
 	timeStr := time.Now().Format(time.RFC3339)
-	sqlStatement := fmt.Sprintf(`INSERT INTO customer (first_name, last_name, age, email, created_on, modified_on)
+	sqlStatement := fmt.Sprintf(`INSERT INTO customers (first_name, last_name, age, email, created_on, modified_on)
 		VALUES ( '%s', '%s', '%s', '%s', '%s', '%s')
 		RETURNING id`,
 		*customerReq.FirstName, *customerReq.LastName, *customerReq.Age, *customerReq.Email, timeStr, timeStr)
 	lastInsertid := int64(0)
 
 	ctx := context.Background()
-	tx, err := pdb.Db.BeginTx(ctx, nil)
+	tx, err := pdb.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return "", err
 	}
@@ -152,14 +145,14 @@ func (pdb *CustomerDB) PostCustomer(customerReq *api.Customer) (_ string, err er
 
 func (pdb *CustomerDB) PutCustomer(customerReq *api.Customer) (err error) {
 	sqlStatement := `
-		UPDATE customer
+		UPDATE customers
 		SET first_name = $1, last_name = $2, age = $3, email = $4, modified_on = $5
 		WHERE id = $6
 	`
 	timeStr := time.Now().Format(time.RFC3339)
 
 	ctx := context.Background()
-	tx, err := pdb.Db.BeginTx(ctx, nil)
+	tx, err := pdb.DB.BeginTx(ctx, nil)
 
 	defer func() {
 		switch err {
@@ -173,7 +166,12 @@ func (pdb *CustomerDB) PutCustomer(customerReq *api.Customer) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, sqlStatement, customerReq.FirstName, customerReq.LastName, customerReq.Age, customerReq.Email, timeStr, customerReq.Id)
+	_, err = tx.ExecContext(
+		ctx,
+		sqlStatement,
+		customerReq.FirstName,
+		customerReq.LastName,
+		customerReq.Age, customerReq.Email, timeStr, customerReq.ID)
 	if err != nil {
 		return err
 	}

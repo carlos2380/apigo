@@ -15,18 +15,14 @@ func (sHandler *StorageHandler) GetCases(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if len(retCases) > 0 {
-		json.NewEncoder(w).Encode(retCases)
-	} else {
-		json.NewEncoder(w).Encode("[]")
-	}
+	_ = json.NewEncoder(w).Encode(retCases)
 }
 
 func (sHandler *StorageHandler) GetCase(w http.ResponseWriter, r *http.Request) {
@@ -38,15 +34,14 @@ func (sHandler *StorageHandler) GetCase(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(retCase)
-
+	_ = json.NewEncoder(w).Encode(retCase)
 }
 
 func (sHandler *StorageHandler) DeleteCase(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +53,7 @@ func (sHandler *StorageHandler) DeleteCase(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
@@ -76,7 +71,7 @@ func (sHandler *StorageHandler) PostCase(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -86,17 +81,17 @@ func (sHandler *StorageHandler) PostCase(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(
+	_ = json.NewEncoder(w).Encode(
 		struct {
-			Id string `json:"id"`
-		}{Id: id})
+			ID string `json:"id"`
+		}{ID: id})
 }
 
 func (sHandler *StorageHandler) PutCase(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +103,7 @@ func (sHandler *StorageHandler) PutCase(w http.ResponseWriter, r *http.Request) 
 	if err != nil || cas.ValidReq() != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -118,7 +113,7 @@ func (sHandler *StorageHandler) PutCase(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})
@@ -127,24 +122,24 @@ func (sHandler *StorageHandler) PutCase(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (sHandler *StorageHandler) GetCasesByStoreId(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetCasesByStoreID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
 	if id == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
 		return
 	}
 
-	retCases, err := sHandler.StgCase.GetCasesByStoreId(id)
+	retCases, err := sHandler.StgCase.GetCasesByStoreID(id)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -152,30 +147,30 @@ func (sHandler *StorageHandler) GetCasesByStoreId(w http.ResponseWriter, r *http
 	}
 	w.WriteHeader(http.StatusOK)
 	if len(retCases) > 0 {
-		json.NewEncoder(w).Encode(retCases)
+		_ = json.NewEncoder(w).Encode(retCases)
 	} else {
-		json.NewEncoder(w).Encode("[]")
+		_ = json.NewEncoder(w).Encode("[]")
 	}
 }
 
-func (sHandler *StorageHandler) GetCasesByCustomerId(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetCasesByCustomerID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
 	if id == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
 		return
 	}
 
-	retCases, err := sHandler.StgCase.GetCasesByCustomerId(id)
+	retCases, err := sHandler.StgCase.GetCasesByCustomerID(id)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -183,20 +178,20 @@ func (sHandler *StorageHandler) GetCasesByCustomerId(w http.ResponseWriter, r *h
 	}
 	w.WriteHeader(http.StatusOK)
 	if len(retCases) > 0 {
-		json.NewEncoder(w).Encode(retCases)
+		_ = json.NewEncoder(w).Encode(retCases)
 	} else {
-		json.NewEncoder(w).Encode("[]")
+		_ = json.NewEncoder(w).Encode("[]")
 	}
 }
 
-func (sHandler *StorageHandler) GetCustomerByCaseId(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetCustomerByCaseID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
 	id := params["id"]
 	if id == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -206,24 +201,24 @@ func (sHandler *StorageHandler) GetCustomerByCaseId(w http.ResponseWriter, r *ht
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
 		return
 	}
-	params["id"] = retCase.CustomerId
+	params["id"] = retCase.CustomerID
 	sHandler.GetCustomer(w, r)
 }
 
-func (sHandler *StorageHandler) GetStoreByCaseId(w http.ResponseWriter, r *http.Request) {
+func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
 	id := params["id"]
 	if id == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -233,12 +228,12 @@ func (sHandler *StorageHandler) GetStoreByCaseId(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
 		return
 	}
-	params["id"] = retCase.CustomerId
+	params["id"] = retCase.CustomerID
 	sHandler.GetStore(w, r)
 }

@@ -16,21 +16,21 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/stores/{id}", stgHandler.DeleteStore).Methods(http.MethodDelete)
 	r.HandleFunc("/api/stores", stgHandler.PostStore).Methods(http.MethodPost)
 	r.HandleFunc("/api/stores/{id}", stgHandler.PutStore).Methods(http.MethodPut)
-	r.HandleFunc("/api/stores/{id}/cases", stgHandler.GetCasesByStoreId).Methods(http.MethodGet)
+	r.HandleFunc("/api/stores/{id}/cases", stgHandler.GetCasesByStoreID).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/customers", stgHandler.GetCustomers).Methods(http.MethodGet)
 	r.HandleFunc("/api/customers/{id}", stgHandler.GetCustomer).Methods(http.MethodGet)
 	r.HandleFunc("/api/customers/{id}", stgHandler.DeleteCustomer).Methods(http.MethodDelete)
 	r.HandleFunc("/api/customers", stgHandler.PostCustomer).Methods(http.MethodPost)
 	r.HandleFunc("/api/customers/{id}", stgHandler.PutCustomer).Methods(http.MethodPut)
-	r.HandleFunc("/api/customers/{id}/cases", stgHandler.GetCasesByCustomerId).Methods(http.MethodGet)
+	r.HandleFunc("/api/customers/{id}/cases", stgHandler.GetCasesByCustomerID).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet)
 	r.HandleFunc("/api/cases/{id}", stgHandler.GetCase).Methods(http.MethodGet)
 	r.HandleFunc("/api/cases/{id}", stgHandler.DeleteCase).Methods(http.MethodDelete)
 	r.HandleFunc("/api/cases", stgHandler.PostCase).Methods(http.MethodPost)
 	r.HandleFunc("/api/cases/{id}", stgHandler.PutCase).Methods(http.MethodPut)
-	r.HandleFunc("/api/cases/{id}/customers", stgHandler.GetCustomerByCaseId).Methods(http.MethodGet)
-	r.HandleFunc("/api/cases/{id}/stores", stgHandler.GetStoreByCaseId).Methods(http.MethodGet)
+	r.HandleFunc("/api/cases/{id}/customers", stgHandler.GetCustomerByCaseID).Methods(http.MethodGet)
+	r.HandleFunc("/api/cases/{id}/stores", stgHandler.GetStoreByCaseID).Methods(http.MethodGet)
 	return r
 }

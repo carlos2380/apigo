@@ -15,18 +15,14 @@ func (sHandler *StorageHandler) GetCustomers(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if len(retCustomers) > 0 {
-		json.NewEncoder(w).Encode(retCustomers)
-	} else {
-		json.NewEncoder(w).Encode("[]")
-	}
+	_ = json.NewEncoder(w).Encode(retCustomers)
 }
 
 func (sHandler *StorageHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
@@ -38,15 +34,14 @@ func (sHandler *StorageHandler) GetCustomer(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(retCustomer)
-
+	_ = json.NewEncoder(w).Encode(retCustomer)
 }
 
 func (sHandler *StorageHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +53,7 @@ func (sHandler *StorageHandler) DeleteCustomer(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
@@ -76,7 +71,7 @@ func (sHandler *StorageHandler) PostCustomer(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -86,17 +81,17 @@ func (sHandler *StorageHandler) PostCustomer(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(
+	_ = json.NewEncoder(w).Encode(
 		struct {
-			Id string `json:"id"`
-		}{Id: id})
+			ID string `json:"id"`
+		}{ID: id})
 }
 
 func (sHandler *StorageHandler) PutCustomer(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +103,7 @@ func (sHandler *StorageHandler) PutCustomer(w http.ResponseWriter, r *http.Reque
 	if err != nil || customer.ValidReq() != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -118,7 +113,7 @@ func (sHandler *StorageHandler) PutCustomer(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})

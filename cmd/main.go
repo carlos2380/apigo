@@ -12,32 +12,34 @@ import (
 func main() {
 	port := flag.String("port", "8000", "Port the server will be listening")
 	dbDriver := flag.String("driver", "", "Database driver (postgres only supported now)")
+	dbPassword := flag.String("password", "", "Password of the database")
+	dbIPHost := flag.String("host", "172.17.0.1", "Host IP of the database")
+	dbPort := flag.String("dbport", "5432", "Port of the database")
+
 	flag.Parse()
 
 	var stgStore storage.StoreStorage
 	var stgCustomer storage.CustomerStorage
 	var stgCase storage.CaseStorage
 
-	var err error
 	switch *dbDriver {
 	case "postgres":
-		stgStore, err = postgres.NewPostgresStorage()
+		db, err := postgres.InitPostgres(dbPassword, dbIPHost, dbPort)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer stgStore.(*postgres.StoreDB).CloseDB()
 
-		stgCustomer, err = postgres.NewPostgresCustomer()
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer stgCustomer.(*postgres.CustomerDB).CloseDB()
+		defer func() {
+			err = postgres.ClosePostgres(db)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 
-		stgCase, err = postgres.NewPostgresCase()
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer stgCase.(*postgres.CaseDB).CloseDB()
+		stgStore = &postgres.StoreDB{DB: db}
+		stgCustomer = &postgres.CustomerDB{DB: db}
+		stgCase = &postgres.CaseDB{DB: db}
+
 	default:
 		log.Fatalf("Unsupported driver %s", *dbDriver)
 	}

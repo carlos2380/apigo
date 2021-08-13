@@ -15,18 +15,14 @@ func (sHandler *StorageHandler) GetStores(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if len(retStores) > 0 {
-		json.NewEncoder(w).Encode(retStores)
-	} else {
-		json.NewEncoder(w).Encode("[]")
-	}
+	_ = json.NewEncoder(w).Encode(retStores)
 }
 
 func (sHandler *StorageHandler) GetStore(w http.ResponseWriter, r *http.Request) {
@@ -38,15 +34,14 @@ func (sHandler *StorageHandler) GetStore(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(retStore)
-
+	_ = json.NewEncoder(w).Encode(retStore)
 }
 
 func (sHandler *StorageHandler) DeleteStore(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +53,7 @@ func (sHandler *StorageHandler) DeleteStore(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Item Not Found"})
@@ -76,7 +71,7 @@ func (sHandler *StorageHandler) PostStore(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -86,17 +81,17 @@ func (sHandler *StorageHandler) PostStore(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(
+	_ = json.NewEncoder(w).Encode(
 		struct {
-			Id string `json:"id"`
-		}{Id: id})
+			ID string `json:"id"`
+		}{ID: id})
 }
 
 func (sHandler *StorageHandler) PutStore(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +103,7 @@ func (sHandler *StorageHandler) PutStore(w http.ResponseWriter, r *http.Request)
 	if err != nil || store.ValidReq() != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Bad Request"})
@@ -118,7 +113,7 @@ func (sHandler *StorageHandler) PutStore(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(
+		_ = json.NewEncoder(w).Encode(
 			struct {
 				Error string `json:"error"`
 			}{Error: "Error on update DB"})
