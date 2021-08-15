@@ -146,11 +146,7 @@ func (sHandler *StorageHandler) GetCasesByStoreID(w http.ResponseWriter, r *http
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if len(retCases) > 0 {
-		_ = json.NewEncoder(w).Encode(retCases)
-	} else {
-		_ = json.NewEncoder(w).Encode("[]")
-	}
+	_ = json.NewEncoder(w).Encode(&api.CasesJSON{Cases: retCases})
 }
 
 func (sHandler *StorageHandler) GetCasesByCustomerID(w http.ResponseWriter, r *http.Request) {
@@ -177,11 +173,8 @@ func (sHandler *StorageHandler) GetCasesByCustomerID(w http.ResponseWriter, r *h
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	if len(retCases) > 0 {
-		_ = json.NewEncoder(w).Encode(retCases)
-	} else {
-		_ = json.NewEncoder(w).Encode("[]")
-	}
+
+	_ = json.NewEncoder(w).Encode(&api.CasesJSON{Cases: retCases})
 }
 
 func (sHandler *StorageHandler) GetCustomerByCaseID(w http.ResponseWriter, r *http.Request) {

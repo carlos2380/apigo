@@ -4,9 +4,14 @@ import (
 	"apigo/internal/server"
 	"apigo/internal/storage"
 	"apigo/internal/storage/postgres"
+	"context"
 	"flag"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -32,7 +37,7 @@ func main() {
 		defer func() {
 			err = postgres.ClosePostgres(db)
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}()
 
@@ -44,6 +49,35 @@ func main() {
 		log.Fatalf("Unsupported driver %s", *dbDriver)
 	}
 
+	router := server.NewRouter(stgStore, stgCustomer, stgCase)
+
+	srv := &http.Server{
+		Addr:    ":" + *port,
+		Handler: router,
+	}
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	log.Print("Server Started")
 	log.Printf("Listening on 0.0.0.0:%s", *port)
-	log.Fatal(http.ListenAndServe(":"+*port, server.NewRouter(stgStore, stgCustomer, stgCase)))
+
+	<-done
+
+	log.Print("Server Stopped")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
 }

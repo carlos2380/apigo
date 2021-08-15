@@ -31,10 +31,7 @@ func TestServer(t *testing.T) {
 		log.Fatal(err)
 	}
 	defer func() {
-		err = postgres.ClosePostgres(db)
-		if err != nil {
-			log.Fatal(err)
-		}
+		_ = postgres.ClosePostgres(db)
 	}()
 
 	db = exec(db, "DELETE FROM cases")
