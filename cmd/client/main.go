@@ -25,6 +25,13 @@ func main() {
 		log.Fatal(err)
 	}
 	wg := sync.WaitGroup{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxConnsPerHost:     c,
+			MaxIdleConns:        c,
+			MaxIdleConnsPerHost: c,
+		},
+	}
 	t0 := time.Now()
 	for i := 0; i < c; i++ {
 		wg.Add(1)
@@ -41,10 +48,10 @@ func main() {
 					log.Fatal(err)
 				}
 
-				client := &http.Client{}
 				resp, err := client.Do(req)
 				if err != nil {
 					log.Println(err)
+					continue
 				}
 				defer resp.Body.Close()
 

@@ -5,8 +5,8 @@ Technical test for Aifi
 ### Prerequisites
 
 To run the API you need to have Docker and Docker compose installed on the machine.
-- Docker: https://docs.docker.com/get-docker/
-- Docker compose https://docs.docker.com/compose/install/
+- Docker (Min version: 20.10.7): https://docs.docker.com/get-docker/
+- Docker compose (Min version: 1.29.2): https://docs.docker.com/compose/install/
 - AB apache, to do AB tests: https://www.tutorialspoint.com/apache_bench/apache_bench_environment_setup.htm
 
 ### Build and run
@@ -48,7 +48,7 @@ To execute the client, affter to do the execution of compose. we create the buil
 ```
 and then we can run the client
 ```
-# docker run -it client sh -c "/client -c 1 -nc 50000 --url=172.17.0.1:8000/api/customers"
+# docker run -it client sh -c "/client -c 1 -nc 50000 -url http://172.17.0.1:8000/api/customers"
 ```
 Where c is the number of threads, nc the number of transactions per threads and url the url to do get.
 
