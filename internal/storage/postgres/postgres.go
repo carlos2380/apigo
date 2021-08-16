@@ -17,6 +17,8 @@ func InitPostgres(dbPassword, dbIPHost, dbPort *string) (*sql.DB, error) {
 	if err := postgresDB.Ping(); err != nil {
 		return nil, err
 	}
+	postgresDB.SetMaxIdleConns(128)
+	postgresDB.SetMaxOpenConns(128)
 	return postgresDB, nil
 }
 func ClosePostgres(db *sql.DB) error {

@@ -1,0 +1,501 @@
+openapi: 3.0.0
+info:
+  title: APIGO Documentation
+  description: API made in GOLANG for tecnical test in AIFI
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+tags:
+- name: "store"
+  description: "Documentation about stores"
+- name: "customer"
+  description: "Documentation about customers"
+- name: "case"
+  description: "Documentation about cases"
+paths:
+  /stores:
+    get:
+      tags:
+      - "store"
+      summary: Returns a list of stores.
+      responses:
+        '200':
+          description: Stores with a array of store
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  stores:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Store'
+        '500':
+          description: Internal error services
+    post:
+      tags:
+      - "store"
+      summary: Creates a store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                address:
+                  type: string
+      responses: 
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "1"
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+  /stores/{storeID}:
+    get:
+      tags:
+      - "store"
+      summary: Returns a store.
+      parameters:
+        - in: path
+          name: storeID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the store to get
+      responses:
+        '200':
+          description: Return the selected store
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Store'
+        '404':
+          description: Store not found
+    put:
+      tags:
+      - "store"
+      summary: Modify parameters of store.
+      parameters:
+        - in: path
+          name: storeID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the store to modify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Store'
+      responses:
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+    delete:
+      tags:
+      - "store"
+      summary: Delete the selected store and the cases that refer to it.
+      parameters:
+        - in: path
+          name: storeID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the store to delete
+      responses:
+        '200':
+          description: Store deleted
+            
+        '404':
+          description: Store not found
+  /stores/{storeID}/cases:
+    get:
+      tags:
+      - "case"
+      - "store"
+      summary: Returns the cases of the store.
+      parameters:
+        - in: path
+          name: storeID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the store
+      responses:
+        '200':
+          description: Return the cases of the store ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+        '500':
+          description: Bad request, internal error.
+  
+  
+  
+  /customers:
+    get:
+      tags:
+      - "customer"
+      summary: Returns a list of customers.
+      responses:
+        '200':
+          description: Customers with a array of customer
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+        '500':
+          description: Internal error services
+    post:
+      tags:
+      - "customer"
+      summary: Creates a customer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                age:
+                  type: string
+                email:
+                  type: string
+      responses: 
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "1"
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+  /customers/{customerID}:
+    get:
+      tags:
+      - "customer"
+      summary: Returns a customer.
+      parameters:
+        - in: path
+          name: customerID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the customer to get
+      responses:
+        '200':
+          description: Return the selected store
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Store not found
+    put:
+      tags:
+      - "customer"
+      summary: Modify parameters of customer.
+      parameters:
+        - in: path
+          name: customerID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the customer to modify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+    delete:
+      tags:
+      - "customer"
+      summary: Delete the selected customer and the cases that refer to it.
+      parameters:
+        - in: path
+          name: customerID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the customer to delete
+      responses:
+        '200':
+          description: Customer deleted
+            
+        '404':
+          description: Customer not found
+  /customers/{customerID}/cases:
+    get:
+      tags:
+      - "case"
+      - "customer"
+      summary: Returns the cases of the customer.
+      parameters:
+        - in: path
+          name: customerID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the customer
+      responses:
+        '200':
+          description: Return the cases of the customer ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+        '500':
+          description: Bad request, internal error.        
+          
+  /cases:
+    get:
+      tags:
+      - "case"
+      summary: Returns a list of cases.
+      responses:
+        '200':
+          description: Customers with a array of cases
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+        '500':
+          description: Internal error services
+    post:
+      tags:
+      - "case"
+      summary: Creates a case.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_stamp:
+                  type: string
+                  format: "date-time"
+                end_time_stamp:
+                  type: string
+                  format: "date-time"
+                customer_id:
+                  type: string
+                store_id:
+                  type: string
+              required:
+                - customer_id
+                - store_id
+      responses: 
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "1"
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+  /cases/{caseID}:
+    get:
+      tags:
+      - "case"
+      summary: Returns a case.
+      parameters:
+        - in: path
+          name: caseID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the case to get
+      responses:
+        '200':
+          description: Return the selected case
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Case'
+        '404':
+          description: Store not found
+    put:
+      tags:
+      - "case"
+      summary: Modify parameters of case.
+      parameters:
+        - in: path
+          name: caseID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the case to mpdify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+      responses:
+        '400':
+          description: Error on body request
+        '500':
+          description: Internal error on update database
+    delete:
+      tags:
+      - "case"
+      summary: Delete the selected Case.
+      parameters:
+        - in: path
+          name: caseID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the case to delete
+      responses:
+        '200':
+          description: Case deleted
+            
+        '404':
+          description: Case not found
+  /cases/{caseID}/stores:
+    get:
+      tags:
+      - "case"
+      - "store"
+      summary: Returns the store of the case.
+      parameters:
+        - in: path
+          name: caseID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the case
+      responses:
+        '200':
+          description: Return the store of the case ID
+          content:
+             application/json:
+              schema: 
+                $ref: '#/components/schemas/Store'
+        '404':
+          description: case not found. 
+        '500':
+          description: Bad request, internal error.
+  /cases/{caseID}/customers:
+    get:
+      tags:
+      - "case"
+      - "customer"
+      summary: Returns the customer of the case.
+      parameters:
+        - in: path
+          name: caseID
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the case
+      responses:
+        '200':
+          description: Return the customer of the case ID
+          content:
+             application/json:
+              schema: 
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: case not found. 
+        '500':
+          description: Bad request, internal error.   
+    
+components:
+  schemas:
+    Store:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+    Customer:
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        age:
+          type: string
+        email:
+          type: string
+    Case:
+      properties:
+        id:
+          type: string
+        start_time_stamp:
+          type: string
+          format: "date-time"
+        end_time_stamp:
+          type: string
+          format: "date-time"
+        customer_id:
+          type: string
+        store_id:
+          type: string
+      required:
+        - customer_id
+        - store_id

@@ -264,3 +264,83 @@ func TestServer(t *testing.T) {
 		})
 	}
 }
+
+func TestLoad(t *testing.T) {
+	password := "secret"
+	ip := "172.17.0.1"
+	port := "5432"
+	db, err := postgres.InitPostgres(&password, &ip, &port)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		_ = postgres.ClosePostgres(db)
+	}()
+
+	db = exec(db, "DELETE FROM cases")
+	db = exec(db, "DELETE FROM customers")
+	db = exec(db, "DELETE FROM stores")
+	db = exec(db, "ALTER SEQUENCE cases_id_seq RESTART")
+	db = exec(db, "ALTER SEQUENCE customers_id_seq RESTART")
+	db = exec(db, "ALTER SEQUENCE stores_id_seq RESTART")
+
+	store := &postgres.StoreDB{DB: db}
+	customer := &postgres.CustomerDB{DB: db}
+	cs := &postgres.CaseDB{DB: db}
+
+	srv := httptest.NewServer(server.NewRouter(store, customer, cs))
+	defer srv.Close()
+
+	tableTest := []struct {
+		desc               string
+		httpMethod         string
+		url                string
+		bodyReqStr         string
+		expectedStatusCode int
+	}{
+
+		{
+			"Test 2: Create a store",
+			http.MethodPost,
+			srv.URL + "/api/stores",
+			`{"id":"1","name":"store1","address":"address1"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 11: Create customer",
+			http.MethodPost,
+			srv.URL + "/api/customers",
+			`{"first_name":"jhon","last_name":"connor","age":"30","email":"jconnor@gmail.com"}`,
+			http.StatusOK,
+		},
+		{
+			"Test 16: Create case",
+			http.MethodPost,
+			srv.URL + "/api/cases",
+			`{"start_time_stamp":"2021-08-12 04:35:36","end_time_stamp":"2021-08-12 04:35:36","customer_id":"2","store_id":"2"}`,
+			http.StatusOK,
+		},
+	}
+
+	for _, tt := range tableTest {
+		t.Run(tt.desc, func(t *testing.T) {
+			for i := 0; i < 10; i++ {
+				ctx := context.Background()
+				req, err := http.NewRequestWithContext(ctx, tt.httpMethod, tt.url, strings.NewReader(tt.bodyReqStr))
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				resp, err := http.DefaultClient.Do(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != tt.expectedStatusCode {
+					t.Fatalf("Expected Status Code %d but found %d", tt.expectedStatusCode, resp.StatusCode)
+				}
+			}
+		})
+	}
+}

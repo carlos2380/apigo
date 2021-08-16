@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  apigo:
+    build: 
+      context: .
+      target: apigo
+    ports:
+      - 8000:8000
+    depends_on: 
+      - postgres
+    command: |
+      /bin/sh -c "sleep 10 && /apigo --host=postgres --driver=postgres --password=secret"
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5432:5432
+    volumes:
+      - type: bind
+        source: ./samples/initdb
+        target: /docker-entrypoint-initdb.d
+  adminer:
+    image: adminer
+    ports: 
+      - 8081:8080
+    depends_on: 
+      - postgres
+  swagger:
+    image: swaggerapi/swagger-ui
+    environment:
+      SWAGGER_JSON: /doc/swagger.yml
+    ports: 
+      - 8092:8080
+    volumes:
+      - type: bind
+        source: ./
+        target: /doc
