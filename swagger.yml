@@ -327,7 +327,7 @@ paths:
   /customers/{customerID}/stores:
     get:
       tags:
-      - "customers"
+      - "customer"
       - "store"
       summary: Returns the store of the customer.
       parameters:
