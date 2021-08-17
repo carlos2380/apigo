@@ -150,9 +150,19 @@ func (pdb *StoreDB) PutStore(storeReq *api.Store) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.ID)
+	resultsql, err := tx.ExecContext(ctx, sqlStatement, storeReq.Name, storeReq.Address, timeStr, storeReq.ID)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := resultsql.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected < 1 {
+		err = errors.New("item no found")
+		return
 	}
 
 	return nil

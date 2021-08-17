@@ -21,6 +21,7 @@ type Customer struct {
 	lastName  *string
 	age       *int
 	email     *string
+	storeID   int64
 	created   time.Time
 	modified  time.Time
 }
@@ -38,7 +39,7 @@ func (pdb *CustomerDB) GetCustomers() (*api.CustomersJSON, error) {
 	customers := []*api.Customer{}
 	for rows.Next() {
 		var c Customer
-		err = rows.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.created, &c.modified)
+		err = rows.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.storeID, &c.created, &c.modified)
 		if err != nil {
 			return nil, err
 		}
@@ -53,8 +54,9 @@ func (pdb *CustomerDB) GetCustomers() (*api.CustomersJSON, error) {
 			&api.Customer{
 				ID:        strconv.FormatInt(c.id, 10),
 				FirstName: c.firstName, LastName: c.lastName,
-				Age:   &age,
-				Email: c.email,
+				Age:     &age,
+				Email:   c.email,
+				StoreID: strconv.FormatInt(c.storeID, 10),
 			},
 		)
 	}
@@ -64,7 +66,7 @@ func (pdb *CustomerDB) GetCustomers() (*api.CustomersJSON, error) {
 func (pdb *CustomerDB) GetCustomer(customerID string) (*api.Customer, error) {
 	row := pdb.DB.QueryRow(fmt.Sprintf("Select * From customers WHERE id = '%s'", customerID))
 	var c Customer
-	err := row.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.created, &c.modified)
+	err := row.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.storeID, &c.created, &c.modified)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,12 @@ func (pdb *CustomerDB) GetCustomer(customerID string) (*api.Customer, error) {
 	if c.age != nil {
 		age = strconv.Itoa(*c.age)
 	}
-	return &api.Customer{ID: strconv.FormatInt(c.id, 10), FirstName: c.firstName, LastName: c.lastName, Age: &age, Email: c.email}, nil
+	return &api.Customer{ID: strconv.FormatInt(c.id, 10),
+		FirstName: c.firstName,
+		LastName:  c.lastName,
+		Age:       &age,
+		Email:     c.email,
+		StoreID:   strconv.FormatInt(c.storeID, 10)}, nil
 }
 
 func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
@@ -114,10 +121,10 @@ func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 
 func (pdb *CustomerDB) PostCustomer(customerReq *api.Customer) (_ string, err error) {
 	timeStr := time.Now().Format(time.RFC3339)
-	sqlStatement := fmt.Sprintf(`INSERT INTO customers (first_name, last_name, age, email, created_on, modified_on)
-		VALUES ( '%s', '%s', '%s', '%s', '%s', '%s')
+	sqlStatement := fmt.Sprintf(`INSERT INTO customers (first_name, last_name, age, email, store_id, created_on, modified_on)
+		VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		RETURNING id`,
-		*customerReq.FirstName, *customerReq.LastName, *customerReq.Age, *customerReq.Email, timeStr, timeStr)
+		*customerReq.FirstName, *customerReq.LastName, *customerReq.Age, *customerReq.Email, customerReq.StoreID, timeStr, timeStr)
 	lastInsertid := int64(0)
 
 	ctx := context.Background()
@@ -146,8 +153,8 @@ func (pdb *CustomerDB) PostCustomer(customerReq *api.Customer) (_ string, err er
 func (pdb *CustomerDB) PutCustomer(customerReq *api.Customer) (err error) {
 	sqlStatement := `
 		UPDATE customers
-		SET first_name = $1, last_name = $2, age = $3, email = $4, modified_on = $5
-		WHERE id = $6
+		SET first_name = $1, last_name = $2, age = $3, email = $4, store_id = $5, modified_on = $6
+		WHERE id = $7
 	`
 	timeStr := time.Now().Format(time.RFC3339)
 
@@ -166,14 +173,25 @@ func (pdb *CustomerDB) PutCustomer(customerReq *api.Customer) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(
+	resultsql, err := tx.ExecContext(
 		ctx,
 		sqlStatement,
 		customerReq.FirstName,
 		customerReq.LastName,
-		customerReq.Age, customerReq.Email, timeStr, customerReq.ID)
+		customerReq.Age, customerReq.Email,
+		customerReq.StoreID, timeStr, customerReq.ID)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := resultsql.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected < 1 {
+		err = errors.New("item no found")
+		return
 	}
 
 	return nil

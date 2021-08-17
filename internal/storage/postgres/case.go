@@ -181,9 +181,19 @@ func (pdb *CaseDB) PutCase(caseReq *api.Case) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, sqlStatement, caseReq.StartTime, caseReq.EndTime, caseReq.CustomerID, caseReq.StoreID, timeStr, caseReq.ID)
+	resultsql, err := tx.ExecContext(ctx, sqlStatement, caseReq.StartTime, caseReq.EndTime, caseReq.CustomerID, caseReq.StoreID, timeStr, caseReq.ID)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := resultsql.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected < 1 {
+		err = errors.New("item no found")
+		return
 	}
 
 	return nil

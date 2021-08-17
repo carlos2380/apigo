@@ -13,6 +13,7 @@ CREATE TABLE "public"."cases" (
     CONSTRAINT "cases_id" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
+
 DROP TABLE IF EXISTS "customers";
 DROP SEQUENCE IF EXISTS customers_id_seq;
 CREATE SEQUENCE customers_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
@@ -23,6 +24,7 @@ CREATE TABLE "public"."customers" (
     "last_name" text,
     "age" integer,
     "email" text,
+    "store_id" integer NOT NULL,
     "created_on" timestamp NOT NULL,
     "modified_on" timestamp NOT NULL,
     CONSTRAINT "costumers_id" PRIMARY KEY ("id")
@@ -45,3 +47,4 @@ CREATE TABLE "public"."stores" (
 
 ALTER TABLE ONLY "public"."cases" ADD CONSTRAINT "cases_customers_id_fkey" FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "public"."cases" ADD CONSTRAINT "cases_stores_id_fkey" FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "public"."customers" ADD CONSTRAINT "customers_store_id_fkey" FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE NOT DEFERRABLE;

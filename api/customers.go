@@ -8,6 +8,7 @@ type Customer struct {
 	LastName  *string `json:"last_name"`
 	Age       *string `json:"age"`
 	Email     *string `json:"email"`
+	StoreID   string  `json:"store_id"`
 }
 
 type CustomersJSON struct {
