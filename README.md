@@ -272,3 +272,20 @@ I use Table driven test to make the tests. In this way, there is very simplified
 
 - https://github.com/carlos2380/apigo/blob/main/internal/server/server_test.go
 
+### CORS (Control Access HTTP)
+
+I enabled CORS to be able to connect swagger with apigo.
+
+```GO
+func setHeaders(w http.ResponseWriter) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+}
+```
+
+```GO
+	r.HandleFunc("/api/stores/{id}", stgHandler.GetStore).Methods(http.MethodGet, http.MethodOptions)
+```
