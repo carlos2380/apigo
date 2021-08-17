@@ -192,6 +192,35 @@ r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet, http.Met
 
 ```
 
+### Transactions
+
+I added transactions on methods post, put and delete.
+
+```GO
+//I added err to return
+func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
+	// CODE
+	//I get the context and the tx
+	ctx := context.Background()
+	tx, err := pdb.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	
+	//At the end of the function, if all was correct I try to commit and I return the err
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			_ = tx.Rollback()
+		}
+	}()
+	// More code 
+}
+
+```
+
 
 ## 4- Next steps
 
