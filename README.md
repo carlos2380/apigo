@@ -10,7 +10,7 @@ To run the API you need to have Docker and Docker compose installed on the machi
 - AB apache, to do AB tests: https://en.wikipedia.org/wiki/ApacheBench
 
 ### Build and run
-In the main folder of the project. Where the file compose.yml is located. Execute:
+In the main folder of the project, where the file compose.yml is located. Execute:
 ```
 # docker-compose up -d --build
 ```
@@ -25,11 +25,11 @@ Now it's possible get the stores for example.
 ```
 
 #### Swagger
-Swagger allows to visualize and interact with the API.
+Swagger allows you to visualize and interact with the API.
 ```
 http://localhost:8092
 ```
-Initialize the browser on this url and access the apigo API documentation to know the different requests and responses.
+Initialize the browser on this URL and access the apigo API documentation to know the different requests and responses.
 
 
 ![swagger1](https://github.com/carlos2380/webCarlos2380/blob/master/swagger1.png)
@@ -42,7 +42,7 @@ You can interact with swagger and make requests and see the responses.
 - The Apigo documentation that uses swagger to work is here: https://github.com/carlos2380/apigo/blob/main/swagger.yml
 
 #### Adminer
-Is a simple database manager.
+It's a simple database manager.
 To access to Adminer go to the next url:
 
 ```
@@ -52,7 +52,7 @@ http://localhost:8081
 And set up configuration as:
 
 ![adminer](https://github.com/carlos2380/webCarlos2380/blob/master/adminer.png)
-- Password is **secret** by default.
+- The default password is: **secret**.
 
 
 ## 2- Performance
@@ -76,34 +76,34 @@ and then, run the client.
 Where c is the number of threads, nc the number of transactions per thread and url the url to do the get.
 
 #### Results
-Executing concurrnecy 1 and 50000 transactions per thread we have a TPS (Transactions Per Second) of 3435 using un 60% of CPU
+Executing concurrency 1 and 50000 transactions per thread we have a TPS (Transactions Per Second) of 3435 using un 60% of CPU
 ![own test1](https://github.com/carlos2380/webCarlos2380/blob/master/myclient1cresult.png)
 ![own top1](https://github.com/carlos2380/webCarlos2380/blob/master/myclient1ccpu.png)
 
-Executing concurrnecy 2 and 50000 transactions per thread we have a TPS of 6020 using un 80% of CPU
+Executing concurrency 2 and 50000 transactions per thread we have a TPS of 6020 using un 80% of CPU
 ![own test2](https://github.com/carlos2380/webCarlos2380/blob/master/myclient2cresult.png)
 ![own top2](https://github.com/carlos2380/webCarlos2380/blob/master/myclient2ccpu.png)
 
 ### AB Apache
-Using AB testing is easy to check the transactions per second specifying the number of threads and the number of total transactions 
+Using AB testing it is easy to check the transactions per second specifying the number of threads and the number of total transactions 
 ```
 # ab -k -c 2 -n 100000 http://172.17.0.1:8000/api/customers
 ```
-Where -c is the number of cores and -n the number of total transactions.
+Where -c is the number of concurrency and -n the number of total transactions.
 
 #### Results
-Executing concurrnecy 1 and 100000 transaction we have a TPS of 4207 using un 73% of CPU
+Executing concurrency 1 and 100000 transaction we have a TPS of 4207 using un 73% of CPU
 ![ab test2](https://github.com/carlos2380/webCarlos2380/blob/master/ab1cresult.png)
 ![ab top2](https://github.com/carlos2380/webCarlos2380/blob/master/ab1ccpu.png)
 
-Executing concurrnecy 2 and 100000 transactions we have a TPS of 7527 using un 92% of CPU
+Executing concurrency 2 and 100000 transactions we have a TPS of 7527 using un 92% of CPU
 ![ab test2](https://github.com/carlos2380/webCarlos2380/blob/master/ab2cresult.png)
 ![ab top2](https://github.com/carlos2380/webCarlos2380/blob/master/ab2ccpu.png)
 
 ### Conclusion
 
-The results are similar, with double the CPU we can double the transactions, then GO is good and easy to parallelize the threads.
-We get better results with AB because AB uses less CPU than my own client and the client and server are sharing resources.
+Results obtained were similar, when doubling the concurrency we also double the transactions, then GO is good and easy to parallelize the threads.
+I got better results with AB because uses less CPU than my own client and both are sharing resources with apigo.
 
 ## 3- Documentation
 
@@ -120,7 +120,7 @@ The schema of the exercice is this:
 | StoreID   |           |                |
 | Cases     |           |                |
 
-The UML that represents this scheme is like that:
+The UML that represents this scheme is:
 
 ![UML](https://github.com/carlos2380/webCarlos2380/blob/master/uml.png)
 
@@ -142,7 +142,7 @@ But it could be this:
 
 ![interinterface](https://github.com/carlos2380/webCarlos2380/blob/master/randInterface.png)
 
-For this reason in functions like this:
+For this reason in functions like the following:
 
 ``` GO
 func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.Request) {
@@ -157,7 +157,7 @@ func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.
 
 I make more than one call to the database because the information may be in different databases.
 
-The SQL command for get the info that all is in postgres is that(I supose that asks for case.id = 1 but can be any id to compare):
+The SQL command for postgres wuold be this: (I supose that asks for case.id = 1 but can be any id to compare):
 
 ```SQL
 SELECT stores
