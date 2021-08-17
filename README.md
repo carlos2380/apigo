@@ -169,7 +169,7 @@ WHERE cases.id = 1
 
 Because the functions in the router don't accept more parameters (only w http.ResponeWriter, r *http.Request)
 
-I created muy struct that has the information about the storage.
+I created a struct that has the information about the storage.
 
 ```GO
 type StorageHandler struct {
@@ -179,7 +179,7 @@ type StorageHandler struct {
 }
 ```
 
-then the funcion has the StorageHanler
+then the function has the StorageHanler
 
 ```GO
 func (sHandler *StorageHandler) GetCases(w http.ResponseWriter, r *http.Request)
