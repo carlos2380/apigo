@@ -7,7 +7,7 @@ Technical test for Aifi
 To run the API you need to have Docker and Docker compose installed on the machine.
 - Docker (Min version: 20.10.7): https://docs.docker.com/get-docker/
 - Docker compose (Min version: 1.29.2): https://docs.docker.com/compose/install/
-- AB apache, to do AB tests: https://www.tutorialspoint.com/apache_bench/apache_bench_environment_setup.htm
+- AB apache, to do AB tests: https://en.wikipedia.org/wiki/ApacheBench
 
 ### Build and run
 In the main folder of the project. Where the file compose.yml is located. Execute:
