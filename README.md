@@ -138,7 +138,7 @@ The implementation of Storage now is this:
 
 ![postgresinterface](https://github.com/carlos2380/webCarlos2380/blob/master/postgresInter.png)
 
-But I could be this:
+But it could be this:
 
 ![interinterface](https://github.com/carlos2380/webCarlos2380/blob/master/randInterface.png)
 
