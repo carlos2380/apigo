@@ -102,7 +102,7 @@ Executing concurrency 2 and 100000 transactions we have a TPS of 7527 using un 9
 
 ### Conclusion
 
-Results obtained were similar, when doubling the concurrency we also double the transactions, then GO is good and easy to parallelize the threads.
+Results obtained were similar, when the concurrency is doubled, the transactions are doubled, then GO is good and easy to parallelize the threads.
 I got better results with AB because uses less CPU than my own client and both are sharing resources with apigo.
 
 ## 3- Documentation
@@ -268,7 +268,7 @@ I have added flags to start the application with different setups.
 
 ### TableTests
 
-I use Table driven test to make the tests. In this way, there is very simplified code and it works to test all cases.
+I use Table driven test to make the tests. In this way, there is a very simplified code and it works for all test cases.
 
 - https://github.com/carlos2380/apigo/blob/main/internal/server/server_test.go
 
