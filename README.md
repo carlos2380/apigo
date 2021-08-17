@@ -157,7 +157,7 @@ func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.
 
 I make more than one call to the database because the information may be in different databases.
 
-The SQL command for postgres wuold be this: (I supose that asks for case.id = 1 but can be any id to compare):
+The SQL command for postgres would be this: (I supose that asks for case.id = 1 but can be any id to compare):
 
 ```SQL
 SELECT stores
@@ -185,7 +185,7 @@ then the function has the StorageHanler
 func (sHandler *StorageHandler) GetCases(w http.ResponseWriter, r *http.Request)
 
 ```
-and the function still don't have more parameters.
+and the function still doesn't have more parameters.
 
 ```GO
 r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet, http.MethodOptions)
