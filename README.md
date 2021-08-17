@@ -19,11 +19,18 @@ Once docker-compose has finished building and running the images. We can check t
 ```
 # docker-compose logs apigo
 ```
+Now it's possible get the stores for example.
+```
+# curl http://localhost:8000/api/stores
+```
+
 #### Swagger
+Swagger allows to visualize and interact with the API.
 ```
 http://localhost:8092
 ```
 Initialize the browser on this url and access the apigo API documentation to know the different requests and responses.
+
 
 ![swagger1](https://github.com/carlos2380/webCarlos2380/blob/master/swagger1.png)
 
@@ -31,6 +38,19 @@ You can interact with swagger and make requests and see the responses.
 
 ![swagger2](https://github.com/carlos2380/webCarlos2380/blob/master/swagger2.png)
 ![swagger3](https://github.com/carlos2380/webCarlos2380/blob/master/swagger3.png)
+
+- The Apigo documentation that uses swagger to work is here: https://github.com/carlos2380/apigo/blob/main/swagger.yml
+
+#### Adminer
+Is a simple database manager.
+To access to Adminer go to the next url:
+```
+http://localhost:8081
+```
+And set up configuration as:
+![adminer](https://github.com/carlos2380/webCarlos2380/blob/master/adminer.png)
+- Password is **secret** by default.
+
 
 ## 2- Performance
 I tested the performance using the client and server on the same host. The results are different than in a real environment where the client and server do not share resources.
