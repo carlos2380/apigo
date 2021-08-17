@@ -142,7 +142,7 @@ But I could be this:
 
 ![interinterface](https://github.com/carlos2380/webCarlos2380/blob/master/randInterface.png)
 
-For this reason, when In functions like this:
+For this reason in functions like this:
 
 ``` GO
 func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.Request) {
@@ -165,6 +165,16 @@ FROM cases
 INNER JOIN stores ON cases.store_id = stores.id
 WHERE cases.id = 1
 ```
+### Handler
+
+Because the functions in the router don't accept more parameters (only w http.ResponeWriter, r *http.Request)
+
+I created muy struct that has the information about the storage.
+
+```GO
+
+```
+
 
 
 ## 4- Next steps
