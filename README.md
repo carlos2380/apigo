@@ -7,7 +7,7 @@ Technical test for Aifi
 To run the API you need to have Docker and Docker compose installed on the machine.
 - Docker (Min version: 20.10.7): https://docs.docker.com/get-docker/
 - Docker compose (Min version: 1.29.2): https://docs.docker.com/compose/install/
-- AB apache, to do AB tests: https://www.tutorialspoint.com/apache_bench/apache_bench_environment_setup.htm
+- AB apache, to do AB tests: https://en.wikipedia.org/wiki/ApacheBench
 
 ### Build and run
 In the main folder of the project. Where the file compose.yml is located. Execute:
@@ -130,7 +130,7 @@ I have used Postgres as a rational database. This is the file with the implement
 
 I have enabled delete cascade to simplify the logic.
 
-### Interface Storage
+### Interface storage
 
 To decouple the API with the database. I have created an interface for each model. This way I can have each model stored in different databases and also decouple the API.
 
@@ -169,7 +169,7 @@ WHERE cases.id = 1
 
 Because the functions in the router don't accept more parameters (only w http.ResponeWriter, r *http.Request)
 
-I created muy struct that has the information about the storage.
+I created a struct that has the information about the storage.
 
 ```GO
 type StorageHandler struct {
@@ -179,7 +179,7 @@ type StorageHandler struct {
 }
 ```
 
-then the funcion has the StorageHanler
+then the function has the StorageHanler
 
 ```GO
 func (sHandler *StorageHandler) GetCases(w http.ResponseWriter, r *http.Request)
@@ -192,8 +192,100 @@ r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet, http.Met
 
 ```
 
+### Transactions
 
-## 4- Next steps
+I added transactions on methods post, put and delete.
 
+```GO
+//I added err to return
+func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
+	// CODE
+	//I get the context and the tx
+	ctx := context.Background()
+	tx, err := pdb.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	
+	//At the end of the function, if all was correct I tried to commit and I returned the err
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			_ = tx.Rollback()
+		}
+	}()
+	// More code 
+}
 
+```
 
+### Close server properly
+
+To prevent the server from shutting down while there are pending tasks. The server captures any shutdown signal and waits for pending tasks to finish.
+
+The server has programmed a counter that after 5 seconds of receiving the shutdown signal. The server will shut down, avoiding stuck tasks and the server never shuts down.
+
+```GO
+func main() {
+	//CODE
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	log.Print("Server Started")
+	<-done
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
+}
+
+```
+
+### Flags
+
+I have added flags to start the application with different setups.
+
+```GO
+	port := flag.String("port", "8000", "Port the server will be listening")
+	dbDriver := flag.String("driver", "", "Database driver (postgres only supported now)")
+	dbPassword := flag.String("password", "", "Password of the database")
+	dbIPHost := flag.String("host", "172.17.0.1", "Host IP of the database")
+	dbPort := flag.String("dbport", "5432", "Port of the database")
+	flag.Parse()
+```
+
+### TableTests
+
+I use Table driven test to make the tests. In this way, there is very simplified code and it works to test all cases.
+
+- https://github.com/carlos2380/apigo/blob/main/internal/server/server_test.go
+
+### CORS (Control Access HTTP)
+
+I enabled CORS to be able to connect swagger with apigo.
+
+```GO
+func setHeaders(w http.ResponseWriter) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+}
+```
+
+```GO
+	r.HandleFunc("/api/stores/{id}", stgHandler.GetStore).Methods(http.MethodGet, http.MethodOptions)
+```
