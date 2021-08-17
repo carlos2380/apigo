@@ -38,7 +38,6 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for j := 0; j < n; j++ {
-
 				req, err := http.NewRequest(
 					http.MethodGet,
 					*url,

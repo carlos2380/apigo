@@ -17,6 +17,7 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/stores", stgHandler.PostStore).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/api/stores/{id}", stgHandler.PutStore).Methods(http.MethodPut, http.MethodOptions)
 	r.HandleFunc("/api/stores/{id}/cases", stgHandler.GetCasesByStoreID).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/stores/{id}/customers", stgHandler.GetCustomersByStoreID).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/api/customers", stgHandler.GetCustomers).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/api/customers/{id}", stgHandler.GetCustomer).Methods(http.MethodGet, http.MethodOptions)
@@ -24,6 +25,7 @@ func NewRouter(stgStore storage.StoreStorage, stgCustomer storage.CustomerStorag
 	r.HandleFunc("/api/customers", stgHandler.PostCustomer).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/api/customers/{id}", stgHandler.PutCustomer).Methods(http.MethodPut, http.MethodOptions)
 	r.HandleFunc("/api/customers/{id}/cases", stgHandler.GetCasesByCustomerID).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/api/customers/{id}/stores", stgHandler.GetStoreByCustomerID).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/api/cases/{id}", stgHandler.GetCase).Methods(http.MethodGet, http.MethodOptions)

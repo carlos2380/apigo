@@ -9,4 +9,5 @@ type CustomerStorage interface {
 	DeleteCustomer(customerID string) error
 	PostCustomer(customerReq *api.Customer) (string, error)
 	PutCustomer(customerReq *api.Customer) error
+	GetCustomersByStoreID(storeID string) (*api.CustomersJSON, error)
 }

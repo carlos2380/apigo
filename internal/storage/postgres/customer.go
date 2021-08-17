@@ -196,3 +196,40 @@ func (pdb *CustomerDB) PutCustomer(customerReq *api.Customer) (err error) {
 
 	return nil
 }
+
+func (pdb *CustomerDB) GetCustomersByStoreID(storeID string) (*api.CustomersJSON, error) {
+	rows, err := pdb.DB.Query(fmt.Sprintf("Select * From customers Where store_id = '%s'", storeID))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	customers := []*api.Customer{}
+	for rows.Next() {
+		var c Customer
+		err = rows.Scan(&c.id, &c.firstName, &c.lastName, &c.age, &c.email, &c.storeID, &c.created, &c.modified)
+		if err != nil {
+			return nil, err
+		}
+
+		age := ""
+		if c.age != nil {
+			age = strconv.Itoa(*c.age)
+		}
+
+		customers = append(
+			customers,
+			&api.Customer{
+				ID:        strconv.FormatInt(c.id, 10),
+				FirstName: c.firstName, LastName: c.lastName,
+				Age:     &age,
+				Email:   c.email,
+				StoreID: strconv.FormatInt(c.storeID, 10),
+			},
+		)
+	}
+	return &api.CustomersJSON{Customers: customers}, nil
+}

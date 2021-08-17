@@ -154,3 +154,71 @@ func (sHandler *StorageHandler) PutCustomer(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
+
+func (sHandler *StorageHandler) GetCustomersByStoreID(w http.ResponseWriter, r *http.Request) {
+	setHeaders(w)
+	switch r.Method {
+	case http.MethodOptions:
+		w.WriteHeader(http.StatusOK)
+	case http.MethodGet:
+		params := mux.Vars(r)
+		id := params["id"]
+		if id == "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(
+				struct {
+					Error string `json:"error"`
+				}{Error: "Bad Request"})
+			return
+		}
+
+		retCases, err := sHandler.StgCustomer.GetCustomersByStoreID(id)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(
+				struct {
+					Error string `json:"error"`
+				}{Error: "Bad Request"})
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(retCases)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func (sHandler *StorageHandler) GetStoreByCustomerID(w http.ResponseWriter, r *http.Request) {
+	setHeaders(w)
+	switch r.Method {
+	case http.MethodOptions:
+		w.WriteHeader(http.StatusOK)
+	case http.MethodGet:
+
+		params := mux.Vars(r)
+		id := params["id"]
+		if id == "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(
+				struct {
+					Error string `json:"error"`
+				}{Error: "Bad Request"})
+			return
+		}
+		retCustomer, err := sHandler.StgCustomer.GetCustomer(id)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusNotFound)
+			_ = json.NewEncoder(w).Encode(
+				struct {
+					Error string `json:"error"`
+				}{Error: "Item Not Found"})
+			return
+		}
+		params["id"] = retCustomer.StoreID
+		sHandler.GetStore(w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
