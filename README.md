@@ -132,6 +132,41 @@ I have enabled delete cascade to simplify the logic.
 
 ### Interface Storage
 
+To decouple the API with the database. I have created an interface for each model. This way I can have each model stored in different databases and also decouple the API.
+
+The implementation of Storage now is this:
+
+![postgresinterface](https://github.com/carlos2380/webCarlos2380/blob/master/postgresInter.png)
+
+But I could be this:
+
+![interinterface](https://github.com/carlos2380/webCarlos2380/blob/master/randInterface.png)
+
+For this reason, when In functions like this:
+
+``` GO
+func (sHandler *StorageHandler) GetStoreByCaseID(w http.ResponseWriter, r *http.Request) {
+  //Code
+  retCase, err := sHandler.StgCase.GetCase(id)
+  //Code
+  params["id"] = retCase.StoreID
+  sHandler.GetStore(w, r)
+  //Code
+}
+```
+
+I make more than one call to the database because the information may be in different databases.
+
+The SQL command for get the info that all is in postgres is that(I supose that asks for case.id = 1 but can be any id to compare):
+
+```SQL
+SELECT stores
+FROM cases
+INNER JOIN stores ON cases.store_id = stores.id
+WHERE cases.id = 1
+```
+
+
 ## 4- Next steps
 
 
