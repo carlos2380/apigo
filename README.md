@@ -76,11 +76,11 @@ and then, run the client.
 Where c is the number of threads, nc the number of transactions per thread and url the url to do the get.
 
 #### Results
-Executing concurrency 1 and 50000 transactions per thread we have a TPS (Transactions Per Second) of 3435 using un 60% of CPU
+Executing concurrency 1 and 50000 transactions per thread we have a TPS (Transactions Per Second) of 3435 using 60% of a CPU
 ![own test1](https://github.com/carlos2380/webCarlos2380/blob/master/myclient1cresult.png)
 ![own top1](https://github.com/carlos2380/webCarlos2380/blob/master/myclient1ccpu.png)
 
-Executing concurrency 2 and 50000 transactions per thread we have a TPS of 6020 using un 80% of CPU
+Executing concurrency 2 and 50000 transactions per thread we have a TPS of 6020 using 80% of a CPU
 ![own test2](https://github.com/carlos2380/webCarlos2380/blob/master/myclient2cresult.png)
 ![own top2](https://github.com/carlos2380/webCarlos2380/blob/master/myclient2ccpu.png)
 
@@ -92,11 +92,11 @@ Using AB testing it is easy to check the transactions per second specifying the 
 Where -c is the number of concurrency and -n the number of total transactions.
 
 #### Results
-Executing concurrency 1 and 100000 transaction we have a TPS of 4207 using un 73% of CPU
+Executing concurrency 1 and 100000 transaction we have a TPS of 4207 using 73% of a CPU
 ![ab test2](https://github.com/carlos2380/webCarlos2380/blob/master/ab1cresult.png)
 ![ab top2](https://github.com/carlos2380/webCarlos2380/blob/master/ab1ccpu.png)
 
-Executing concurrency 2 and 100000 transactions we have a TPS of 7527 using un 92% of CPU
+Executing concurrency 2 and 100000 transactions we have a TPS of 7527 using 92% of a CPU
 ![ab test2](https://github.com/carlos2380/webCarlos2380/blob/master/ab2cresult.png)
 ![ab top2](https://github.com/carlos2380/webCarlos2380/blob/master/ab2ccpu.png)
 
