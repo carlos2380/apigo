@@ -130,7 +130,7 @@ I have used Postgres as a rational database. This is the file with the implement
 
 I have enabled delete cascade to simplify the logic.
 
-### Interface Storage
+### Interface storage
 
 To decouple the API with the database. I have created an interface for each model. This way I can have each model stored in different databases and also decouple the API.
 
@@ -207,7 +207,7 @@ func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 		return err
 	}
 	
-	//At the end of the function, if all was correct I try to commit and I return the err
+	//At the end of the function, if all was correct I tried to commit and I returned the err
 	defer func() {
 		switch err {
 		case nil:
@@ -221,7 +221,37 @@ func (pdb *CustomerDB) DeleteCustomer(customerID string) (err error) {
 
 ```
 
+### Close server properly
 
+To prevent the server from shutting down while there are pending tasks. The server captures any shutdown signal and waits for pending tasks to finish.
+
+The server has programmed a counter that after 5 seconds of receiving the shutdown signal. The server will shut down, avoiding stuck tasks and the server never shuts down.
+
+```GO
+func main() {
+	//CODE
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	log.Print("Server Started")
+	<-done
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
+}
+
+```
 ## 4- Next steps
 
 
