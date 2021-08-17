@@ -44,10 +44,13 @@ You can interact with swagger and make requests and see the responses.
 #### Adminer
 Is a simple database manager.
 To access to Adminer go to the next url:
+
 ```
 http://localhost:8081
 ```
+
 And set up configuration as:
+
 ![adminer](https://github.com/carlos2380/webCarlos2380/blob/master/adminer.png)
 - Password is **secret** by default.
 
@@ -103,6 +106,31 @@ The results are similar, with double the CPU we can double the transactions, the
 We get better results with AB because AB uses less CPU than my own client and the client and server are sharing resources.
 
 ## 3- Documentation
+
+### Database
+The schema of the exercice is this:
+
+| Customer  | Store     | Case           |
+|-----------|-----------|----------------|
+| ID        | ID        | ID             |
+| FirstName | Name      | StartTimestamp |
+| LastName  | Address   | EndTimestamp   |
+| Age       | Customers | CustomerID     |
+| Email     | Cases     | StoreID        |
+| StoreID   |           |                |
+| Cases     |           |                |
+
+The UML that represents this scheme is like that:
+
+![UML](https://github.com/carlos2380/webCarlos2380/blob/master/uml.png)
+
+I have used Postgres as a rational database. This is the file with the implementation of the tables:
+
+- https://github.com/carlos2380/apigo/blob/main/samples/initdb/create_tables.sql
+
+I have enabled delete cascade to simplify the logic.
+
+### Interface Storage
 
 ## 4- Next steps
 
