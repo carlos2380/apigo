@@ -172,9 +172,25 @@ Because the functions in the router don't accept more parameters (only w http.Re
 I created muy struct that has the information about the storage.
 
 ```GO
-
+type StorageHandler struct {
+	StgStore    storage.StoreStorage
+	StgCustomer storage.CustomerStorage
+	StgCase     storage.CaseStorage
+}
 ```
 
+then the funcion has the StorageHanler
+
+```GO
+func (sHandler *StorageHandler) GetCases(w http.ResponseWriter, r *http.Request)
+
+```
+and the function still don't have more parameters.
+
+```GO
+r.HandleFunc("/api/cases", stgHandler.GetCases).Methods(http.MethodGet, http.MethodOptions)
+
+```
 
 
 ## 4- Next steps
