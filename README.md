@@ -252,7 +252,23 @@ func main() {
 }
 
 ```
-## 4- Next steps
 
+### Flags
 
+I have added flags to start the application with different setups.
+
+```GO
+	port := flag.String("port", "8000", "Port the server will be listening")
+	dbDriver := flag.String("driver", "", "Database driver (postgres only supported now)")
+	dbPassword := flag.String("password", "", "Password of the database")
+	dbIPHost := flag.String("host", "172.17.0.1", "Host IP of the database")
+	dbPort := flag.String("dbport", "5432", "Port of the database")
+	flag.Parse()
+```
+
+### TableTests
+
+I use Table driven test to make the tests. In this way, there is very simplified code and it works to test all cases.
+
+- https://github.com/carlos2380/apigo/blob/main/internal/server/server_test.go
 
